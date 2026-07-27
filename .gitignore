@@ -1,0 +1,9 @@
+node_modules/
+dist/
+build/
+.env
+*.log
+backend/uploads/contracts/*.pdf
+.DS_Store
+.claude/
+roadmap/
