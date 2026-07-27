@@ -1,14 +1,16 @@
 import mongoose from 'mongoose';
 
+// Zonalar endi mahalla nomiga bog'liq (Termiz shahar Xalq deputatlari Kengashining
+// yer solig'i stavkalari to'g'risidagi qaroridagi mahalla koeffitsiyentlariga asosan) —
+// mahalla chegaralari GIS ma'lumoti mavjud bo'lmaganligi sababli geometriya ixtiyoriy.
 const zoneSchema = new mongoose.Schema(
   {
     districtId: { type: mongoose.Schema.Types.ObjectId, ref: 'District', required: true },
     name: { type: String, required: true, trim: true },
-    type: { type: String, enum: ['central', 'middle', 'outer'], required: true },
     coefficient: { type: Number, required: true },
     geometry: {
-      type: { type: String, enum: ['Polygon'], required: true },
-      coordinates: { type: [[[Number]]], required: true },
+      type: { type: String, enum: ['Polygon'] },
+      coordinates: { type: [[[Number]]] },
     },
   },
   { timestamps: true },

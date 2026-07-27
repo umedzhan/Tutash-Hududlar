@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateApplication, usePreviewApplication, type PreviewApplicationResult } from '../../api/applications';
-import { useDistricts, usePurposes } from '../../api/references';
+import { useDistricts, usePurposes, useZones } from '../../api/references';
 import { Card, CardHeader } from '../../components/Card';
 import { MapView } from '../../components/MapView';
 import type { DrawnPolygon } from '../../components/DrawControl';
@@ -10,11 +10,13 @@ import { formatSom } from '../../lib/format';
 export function TadbirkorNewApplication() {
   const { data: districts } = useDistricts();
   const { data: purposes } = usePurposes();
+  const { data: zones } = useZones();
   const createApplication = useCreateApplication();
   const preview = usePreviewApplication();
   const navigate = useNavigate();
 
   const [polygon, setPolygon] = useState<DrawnPolygon | null>(null);
+  const [zoneId, setZoneId] = useState('');
   const [purposeId, setPurposeId] = useState('');
   const [usageType, setUsageType] = useState('Doimiy');
   const [from, setFrom] = useState('');
@@ -32,7 +34,13 @@ export function TadbirkorNewApplication() {
   }, [purposes, purposeId]);
 
   useEffect(() => {
-    if (!polygon || !districtId || !purposeId || !from || !to) {
+    if (zones && zones.length > 0 && !zoneId) {
+      setZoneId(zones[0]._id);
+    }
+  }, [zones, zoneId]);
+
+  useEffect(() => {
+    if (!polygon || !districtId || !purposeId || !zoneId || !from || !to) {
       setPriceResult(null);
       return;
     }
@@ -43,6 +51,7 @@ export function TadbirkorNewApplication() {
           geometry: { type: 'Polygon', coordinates: polygon.coordinates },
           districtId,
           purposeId,
+          zoneId,
           usageType,
           period: { from, to },
         },
@@ -59,7 +68,7 @@ export function TadbirkorNewApplication() {
     }, 500);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [polygon, districtId, purposeId, usageType, from, to]);
+  }, [polygon, districtId, purposeId, zoneId, usageType, from, to]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -67,8 +76,8 @@ export function TadbirkorNewApplication() {
       setError("Avval xaritada hudud chegarasini chizing");
       return;
     }
-    if (!districtId || !purposeId) {
-      setError("Tuman yoki maqsad tanlanmagan");
+    if (!districtId || !purposeId || !zoneId) {
+      setError("Tuman, mahalla yoki maqsad tanlanmagan");
       return;
     }
     if (!priceResult) {
@@ -82,6 +91,7 @@ export function TadbirkorNewApplication() {
         geometry: { type: 'Polygon', coordinates: polygon.coordinates },
         districtId,
         purposeId,
+        zoneId,
         purpose: purposeName,
         usageType,
         period: { from, to },
@@ -126,6 +136,20 @@ export function TadbirkorNewApplication() {
       <Card>
         <CardHeader title="2. Ariza ma'lumotlari" />
         <form onSubmit={handleSubmit} className="space-y-3 p-4">
+          <div>
+            <label className="mb-1 block text-xs text-slate-500">Mahalla</label>
+            <select
+              value={zoneId}
+              onChange={(e) => setZoneId(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            >
+              {(zones ?? []).map((z) => (
+                <option key={z._id} value={z._id}>
+                  {z.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="mb-1 block text-xs text-slate-500">Maqsad</label>
             <select

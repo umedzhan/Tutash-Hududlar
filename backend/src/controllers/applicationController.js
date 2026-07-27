@@ -33,6 +33,7 @@ export async function listApplications(req, res) {
     .populate('companyId')
     .populate('applicantId', 'name phone')
     .populate('districtId')
+    .populate('zoneId')
     .populate('purposeId')
     .sort({ createdAt: -1 });
   res.json(applications);
@@ -44,6 +45,7 @@ export async function getApplication(req, res) {
     .populate('companyId')
     .populate('applicantId', 'name phone')
     .populate('districtId')
+    .populate('zoneId')
     .populate('purposeId');
   if (!application) {
     return res.status(404).json({ message: 'Ariza topilmadi' });
@@ -53,13 +55,13 @@ export async function getApplication(req, res) {
 
 // Chizish jarayonida (hali saqlamasdan) validatsiya + narx oldindan ko'rsatish
 export async function previewApplication(req, res) {
-  const { geometry, districtId, purposeId, usageType, period } = req.body;
+  const { geometry, districtId, purposeId, zoneId, usageType, period } = req.body;
   const { areaM2 } = await validateGeometry({ geometry });
   const price = await calculatePrice({
-    geometry,
     areaM2,
     districtId,
     purposeId,
+    zoneId,
     usageType,
     dateFrom: period.from,
     dateTo: period.to,
@@ -68,14 +70,14 @@ export async function previewApplication(req, res) {
 }
 
 export async function createApplication(req, res) {
-  const { geometry, districtId, purposeId, purpose, usageType, period, comment } = req.body;
+  const { geometry, districtId, purposeId, zoneId, purpose, usageType, period, comment } = req.body;
 
   const { areaM2 } = await validateGeometry({ geometry });
   const priceSnapshot = await calculatePrice({
-    geometry,
     areaM2,
     districtId,
     purposeId,
+    zoneId,
     usageType,
     dateFrom: period.from,
     dateTo: period.to,
@@ -88,6 +90,7 @@ export async function createApplication(req, res) {
     applicantId: req.user.id,
     companyId: req.user.companyId,
     districtId,
+    zoneId,
     purposeId,
     purpose,
     usageType,

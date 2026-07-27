@@ -1,4 +1,3 @@
-import * as turf from '@turf/turf';
 import District from '../models/District.js';
 import Zone from '../models/Zone.js';
 import Purpose from '../models/Purpose.js';
@@ -19,36 +18,21 @@ function monthsBetween(from, to) {
 }
 
 // oylik_ijara = Sbaza x M x Ktuman x Kzona x Kmaqsad x Kmavsum
-// Kzona ko'p zonaga tushgan holatda maydon ulushiga proporsional og'irlashtirilgan o'rtacha
-export async function calculatePrice({ geometry, areaM2, districtId, purposeId, usageType, dateFrom, dateTo }) {
-  const [district, purpose, tariff] = await Promise.all([
+// Kzona — tadbirkor tanlagan mahalla (Zone) uchun belgilangan koeffitsiyent
+// (Termiz shahar Xalq deputatlari Kengashining yer solig'i stavkalari qaroriga asosan).
+export async function calculatePrice({ areaM2, districtId, purposeId, zoneId, usageType, dateFrom, dateTo }) {
+  const [district, purpose, zone, tariff] = await Promise.all([
     District.findById(districtId),
     Purpose.findById(purposeId),
+    Zone.findById(zoneId),
     Tariff.findOne({ validFrom: { $lte: new Date() } }).sort({ validFrom: -1 }),
   ]);
   if (!district) throw new PricingError('Tuman topilmadi');
   if (!purpose) throw new PricingError('Foydalanish maqsadi topilmadi');
+  if (!zone) throw new PricingError('Mahalla (zona) topilmadi');
   if (!tariff) throw new PricingError('Amaldagi tarif topilmadi');
 
-  const polygon = turf.polygon(geometry.coordinates);
-  const zones = await Zone.find({ districtId, geometry: { $geoIntersects: { $geometry: geometry } } });
-
-  let weightedZoneSum = 0;
-  let coveredArea = 0;
-  for (const zone of zones) {
-    const zonePolygon = turf.polygon(zone.geometry.coordinates);
-    let intersection = null;
-    try {
-      intersection = turf.intersect(turf.featureCollection([polygon, zonePolygon]));
-    } catch {
-      intersection = null;
-    }
-    if (!intersection) continue;
-    const partArea = turf.area(intersection);
-    weightedZoneSum += zone.coefficient * partArea;
-    coveredArea += partArea;
-  }
-  const kZona = coveredArea > 0 ? weightedZoneSum / coveredArea : 1.0;
+  const kZona = zone.coefficient;
 
   const isSeasonal = usageType.toLowerCase().includes('mavsum');
   const kMavsum = isSeasonal ? tariff.seasonalCoefficient : 1.0;
@@ -67,9 +51,10 @@ export async function calculatePrice({ geometry, areaM2, districtId, purposeId, 
       sbaza: tariff.baseRate,
       m: areaM2,
       ktuman: district.coefficient,
-      kzona: Math.round(kZona * 100) / 100,
+      kzona: kZona,
       kmaqsad: purpose.coefficient,
       kmavsum: kMavsum,
+      zoneName: zone.name,
     },
     tariffId: tariff._id,
     calculatedAt: new Date(),

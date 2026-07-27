@@ -51,6 +51,7 @@ const applicationSchema = new mongoose.Schema(
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
     hududId: { type: mongoose.Schema.Types.ObjectId, ref: 'Region', default: null },
     districtId: { type: mongoose.Schema.Types.ObjectId, ref: 'District', required: true },
+    zoneId: { type: mongoose.Schema.Types.ObjectId, ref: 'Zone', required: true },
     purposeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Purpose', required: true },
     purpose: { type: String, required: true },
     usageType: { type: String, required: true },

@@ -8,6 +8,7 @@ const contractSchema = new mongoose.Schema(
     hududId: { type: mongoose.Schema.Types.ObjectId, ref: 'Region', required: true },
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
     districtId: { type: mongoose.Schema.Types.ObjectId, ref: 'District', default: null },
+    zoneId: { type: mongoose.Schema.Types.ObjectId, ref: 'Zone', default: null },
     purposeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Purpose', default: null },
     geometry: {
       type: { type: String, enum: ['Polygon'], default: null },

@@ -26,6 +26,7 @@ export interface PreviewApplicationPayload {
   geometry: GeometryInput;
   districtId: string;
   purposeId: string;
+  zoneId: string;
   usageType: string;
   period: { from: string; to: string };
 }
@@ -46,6 +47,7 @@ export interface CreateApplicationPayload {
   geometry: GeometryInput;
   districtId: string;
   purposeId: string;
+  zoneId: string;
   purpose: string;
   usageType: string;
   period: { from: string; to: string };

@@ -51,7 +51,7 @@ function fieldLine(doc, label, value) {
   doc.text(`${label}: ${value}`);
 }
 
-export async function generateContractPdf({ contract, region, company, district, purpose, tariff }) {
+export async function generateContractPdf({ contract, region, company, district, zone, purpose, tariff }) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
   const fileName = `${contract.contractNumber.replace(/\//g, '-')}.pdf`;
   const filePath = path.join(UPLOAD_DIR, fileName);
@@ -88,6 +88,7 @@ export async function generateContractPdf({ contract, region, company, district,
     );
     fieldLine(doc, 'Manzil', region.address);
     fieldLine(doc, 'Tuman/shahar', region.district);
+    if (zone) fieldLine(doc, 'Mahalla', zone.name);
     fieldLine(doc, 'Maydon', `${contract.areaM2 ?? region.areaM2} m²`);
     if (purpose) fieldLine(doc, 'Foydalanish maqsadi', purpose.name);
     fieldLine(doc, 'Ijara muddati', `${formatShortDate(contract.period.from)} — ${formatShortDate(contract.period.to)}`);

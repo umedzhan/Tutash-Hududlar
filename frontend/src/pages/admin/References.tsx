@@ -81,14 +81,13 @@ export function AdminReferences() {
       </Card>
 
       <Card>
-        <CardHeader title="Zonalar" />
+        <CardHeader title="Zonalar (mahallalar)" />
         {zonesLoading ? (
           <p className="p-4 text-slate-400">Yuklanmoqda...</p>
         ) : (
           <DataTable
             columns={[
-              { header: 'Nomi', render: (z) => z.name },
-              { header: 'Turi', render: (z) => ZONE_TYPE_LABEL[z.type] },
+              { header: 'Mahalla nomi', render: (z) => z.name },
               { header: 'Kzona', render: (z) => z.coefficient },
             ]}
             rows={zones ?? []}
@@ -135,12 +134,6 @@ export function AdminReferences() {
     </div>
   );
 }
-
-const ZONE_TYPE_LABEL: Record<string, string> = {
-  central: 'Markaziy',
-  middle: "O'rta",
-  outer: 'Chekka',
-};
 
 function TariffField({ label, value }: { label: string; value: string }) {
   return (

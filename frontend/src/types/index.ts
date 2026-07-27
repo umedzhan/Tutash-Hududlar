@@ -62,9 +62,8 @@ export interface Zone {
   _id: string;
   districtId: string;
   name: string;
-  type: 'central' | 'middle' | 'outer';
   coefficient: number;
-  geometry: { type: 'Polygon'; coordinates: number[][][] };
+  geometry?: { type: 'Polygon'; coordinates: number[][][] };
 }
 
 export interface Purpose {
@@ -99,6 +98,7 @@ export interface PriceBreakdown {
     kzona: number;
     kmaqsad: number;
     kmavsum: number;
+    zoneName?: string;
   };
   tariffId: string;
   calculatedAt: string;
@@ -138,6 +138,7 @@ export interface Application {
   companyId: Company | string;
   hududId: Region | string | null;
   districtId: District | string;
+  zoneId: Zone | string;
   purposeId: Purpose | string;
   purpose: string;
   usageType: string;
