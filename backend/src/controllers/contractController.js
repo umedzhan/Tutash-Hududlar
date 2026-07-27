@@ -3,6 +3,8 @@ import Application from '../models/Application.js';
 import Region from '../models/Region.js';
 import Company from '../models/Company.js';
 import District from '../models/District.js';
+import Purpose from '../models/Purpose.js';
+import Tariff from '../models/Tariff.js';
 import { generateContractPdf } from '../services/contractPdf.js';
 import * as eimzo from '../services/integrations/eimzo.js';
 import * as soliq from '../services/integrations/soliq.js';
@@ -38,11 +40,15 @@ export async function getContract(req, res) {
 // application.priceSnapshot'dan olinadi). Agar tadbirkor o'zi chizgan bo'lsa (hududId yo'q),
 // shu geometriyadan "zaxirada" holatidagi yangi Region yaratiladi.
 export async function autoGenerateContract(application, req) {
-  const company = await Company.findById(application.companyId);
+  const [company, district, purpose] = await Promise.all([
+    Company.findById(application.companyId),
+    District.findById(application.districtId),
+    Purpose.findById(application.purposeId),
+  ]);
+  const tariff = application.priceSnapshot?.tariffId ? await Tariff.findById(application.priceSnapshot.tariffId) : null;
 
   let region = application.hududId ? await Region.findById(application.hududId) : null;
   if (!region) {
-    const district = await District.findById(application.districtId);
     region = await Region.create({
       name: application.address,
       address: application.address,
@@ -76,7 +82,7 @@ export async function autoGenerateContract(application, req) {
     period: application.period,
   });
 
-  const pdfPath = await generateContractPdf({ contract, region, company });
+  const pdfPath = await generateContractPdf({ contract, region, company, district, purpose, tariff });
   contract.pdfPath = pdfPath;
   await contract.save();
 
