@@ -1,8 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import PDFDocument from 'pdfkit';
+import QRCode from 'qrcode';
 
 const UPLOAD_DIR = path.resolve('uploads/contracts');
+const PAGE_MARGIN = 56;
+const PAGE_WIDTH = 595.28; // A4 pt
 
 const MONTH_NAMES = [
   'yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun',
@@ -30,6 +33,11 @@ function formatShortDate(date) {
   return new Date(date).toLocaleDateString('uz-UZ');
 }
 
+function formatDateTime(date) {
+  const d = new Date(date);
+  return `${formatShortDate(d)} ${d.toLocaleTimeString('uz-UZ')}`;
+}
+
 function cityLabel(districtName) {
   if (!districtName) return 'Termiz sh.';
   return `${districtName.replace(/\s*shahri$/i, '')} sh.`;
@@ -51,6 +59,74 @@ function fieldLine(doc, label, value) {
   doc.text(`${label}: ${value}`);
 }
 
+// E-IMZO orqali imzolangan hujjatlarga qo'shiladigan "hujjatlarni imzolash protokoli"
+// varag'i (real E-IMZO portalining imzo tasdiqlash sahifasi ko'rinishida) — QR kod orqali
+// hujjat raqami, imzo identifikatori va imzolangan sana tekshiriladi.
+function drawSignatureProtocolPage(doc, { contract, company, qrBuffer }) {
+  const topY = doc.y;
+  const leftWidth = PAGE_WIDTH - PAGE_MARGIN * 2 - 130;
+
+  doc.font('Helvetica').fontSize(8.5).fillColor('#333333');
+  doc.text('Hujjat imzolangan:', PAGE_MARGIN, topY, { width: leftWidth });
+  doc.moveDown(0.5);
+  doc.text(`sana: ${formatDateTime(contract.eSign.signedAt)}`, { width: leftWidth });
+  doc.text(`seriya raqami: ${contract.eSign.mockSignatureId.slice(0, 8)}`, { width: leftWidth });
+  doc.text(`kompaniya: ${company.name}`, { width: leftWidth });
+  doc.text(`STIR: ${company.stir}`, { width: leftWidth });
+  doc.text(`F.I.Sh: ${company.director}`, { width: leftWidth });
+
+  doc.image(qrBuffer, PAGE_MARGIN + leftWidth + 20, topY, { width: 110 });
+
+  doc.y = Math.max(doc.y, topY + 120);
+  doc.x = PAGE_MARGIN;
+  doc.moveDown(1);
+
+  doc.font('Helvetica-Bold').fontSize(10).fillColor('#000000').text(contract.eSign.mockSignatureId, PAGE_MARGIN);
+  doc.font('Helvetica').fontSize(8).fillColor('#666666').text('elektron hujjat identifikatori');
+  doc.fillColor('#000000');
+  doc.moveDown(1);
+
+  doc.moveTo(PAGE_MARGIN, doc.y).lineTo(PAGE_WIDTH - PAGE_MARGIN, doc.y).lineWidth(1.2).stroke();
+  doc.moveDown(1.2);
+
+  doc.font('Helvetica-Bold').fontSize(13).text('HUJJATLARNI IMZOLASH PROTOKOLI', { align: 'center' });
+  doc.moveDown(1.5);
+
+  const colWidth = 230;
+  const leftX = PAGE_MARGIN;
+  const rightX = PAGE_MARGIN + colWidth + 30;
+  let y = doc.y;
+
+  doc.font('Helvetica-Bold').fontSize(9.5);
+  doc.text('Ijaraga beruvchi:', leftX, y, { width: colWidth });
+  doc.text('Ijarachi:', rightX, y, { width: colWidth });
+  y = doc.y + 4;
+
+  doc.font('Helvetica').fontSize(9);
+  doc.text(HOKIMIYAT_REKVIZIT.name, leftX, y, { width: colWidth, underline: true });
+  doc.text(company.name, rightX, y, { width: colWidth, underline: true });
+  y = doc.y + 6;
+
+  doc.text('STIR', leftX, y, { width: 60 });
+  doc.text(HOKIMIYAT_REKVIZIT.stir, leftX + 60, y, { width: colWidth - 60, underline: true });
+  doc.text('STIR', rightX, y, { width: 60 });
+  doc.text(company.stir, rightX + 60, y, { width: colWidth - 60, underline: true });
+  y += 15;
+
+  doc.text('Manzil', leftX, y, { width: 60 });
+  doc.text(HOKIMIYAT_REKVIZIT.address, leftX + 60, y, { width: colWidth - 60, underline: true });
+  const addressHeight = doc.heightOfString(HOKIMIYAT_REKVIZIT.address, { width: colWidth - 60 });
+  y += Math.max(addressHeight, 12) + 20;
+
+  doc.font('Helvetica-Bold').fontSize(11).text("Hujjat haqida ma'lumot", PAGE_MARGIN, y);
+  doc.moveDown(0.6);
+  doc.font('Helvetica').fontSize(9.5);
+  fieldLine(doc, 'Hujjat nomi', 'IJARA SHARTNOMASI');
+  fieldLine(doc, 'Hujjat raqami va sanasi', `No. ${contract.contractNumber} dan ${formatShortDate(contract.createdAt)}`);
+
+  doc.addPage();
+}
+
 export async function generateContractPdf({ contract, region, company, district, zone, purpose, tariff }) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
   const fileName = `${contract.contractNumber.replace(/\//g, '-')}.pdf`;
@@ -61,10 +137,26 @@ export async function generateContractPdf({ contract, region, company, district,
   const penaltyPercent = tariff ? (tariff.penaltyRatePerDay * 100).toFixed(2) : '0.10';
   const penaltyCap = tariff ? Math.round(tariff.penaltyCapPercent * 100) : 15;
 
+  const isSigned = Boolean(contract.eSign?.signed && contract.eSign?.mockSignatureId);
+  let qrBuffer = null;
+  if (isSigned) {
+    const qrText = [
+      'TUTASH HUDUDLAR — IJARA SHARTNOMASI',
+      `No: ${contract.contractNumber}`,
+      `Imzo ID: ${contract.eSign.mockSignatureId}`,
+      `Sana: ${formatDateTime(contract.eSign.signedAt)}`,
+    ].join('\n');
+    qrBuffer = await QRCode.toBuffer(qrText, { margin: 1, width: 220 });
+  }
+
   await new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 56, size: 'A4' });
+    const doc = new PDFDocument({ margin: PAGE_MARGIN, size: 'A4' });
     const stream = fs.createWriteStream(filePath);
     doc.pipe(stream);
+
+    if (isSigned) {
+      drawSignatureProtocolPage(doc, { contract, company, qrBuffer });
+    }
 
     doc.font('Helvetica-Bold').fontSize(15).text(`IJARA SHARTNOMASI No. ${contract.contractNumber}`, { align: 'center' });
     doc.moveDown(1);
@@ -180,8 +272,8 @@ export async function generateContractPdf({ contract, region, company, district,
 
     doc.moveDown(3);
     doc.fontSize(9).fillColor('#666666').text(
-      contract.eSign?.signed
-        ? `Ushbu hujjat E-IMZO orqali imzolangan (ID: ${contract.eSign.mockSignatureId ?? '-'}, sana: ${contract.eSign.signedAt ? formatShortDate(contract.eSign.signedAt) : '-'}).`
+      isSigned
+        ? `Ushbu hujjat E-IMZO orqali imzolangan (ID: ${contract.eSign.mockSignatureId}, sana: ${formatDateTime(contract.eSign.signedAt)}).`
         : 'Ushbu hujjat "Tutash hududlar" elektron platformasi tomonidan avtomatik generatsiya qilingan va hozircha E-IMZO orqali imzolanmagan.',
       { align: 'center' },
     );

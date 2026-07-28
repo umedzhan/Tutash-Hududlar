@@ -110,6 +110,17 @@ export async function signContract(req, res) {
 
   const signature = await eimzo.sign(Buffer.from(contract.contractNumber), req.user.id);
   contract.eSign = signature;
+
+  const [region, company, district, zone, purpose] = await Promise.all([
+    Region.findById(contract.hududId),
+    Company.findById(contract.companyId),
+    District.findById(contract.districtId),
+    Zone.findById(contract.zoneId),
+    Purpose.findById(contract.purposeId),
+  ]);
+  const tariff = contract.priceSnapshot?.tariffId ? await Tariff.findById(contract.priceSnapshot.tariffId) : null;
+  contract.pdfPath = await generateContractPdf({ contract, region, company, district, zone, purpose, tariff });
+
   await contract.save();
 
   const application = await Application.findById(contract.applicationId);

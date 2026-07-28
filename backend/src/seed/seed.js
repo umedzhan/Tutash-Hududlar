@@ -29,6 +29,7 @@ import { validateGeometry } from '../services/geoValidation.js';
 import { calculatePrice } from '../services/pricing.js';
 import { decideStage, initStages } from '../services/applicationWorkflow.js';
 import { autoGenerateContract } from '../controllers/contractController.js';
+import { generateContractPdf } from '../services/contractPdf.js';
 
 function squarePolygon(centerLng, centerLat, sizeDeg) {
   const half = sizeDeg / 2;
@@ -350,9 +351,21 @@ async function run() {
     const fakeReq = { user: { id: adminUser._id.toString() }, ip: '127.0.0.1' };
     const contract = await autoGenerateContract(activeApp, fakeReq);
 
-    const signature = { signed: true, signedAt: monthsAgo(1), mockSignatureId: 'MOCK-SEED-001' };
+    const signature = { signed: true, signedAt: monthsAgo(1), mockSignatureId: 'MOCK-SEED-0001-SIGNATURE-ID' };
     contract.eSign = signature;
     contract.status = CONTRACT_STATUS.FAOL;
+
+    const signedRegion = await Region.findById(contract.hududId);
+    const tariffDoc = await Tariff.findById(contract.priceSnapshot.tariffId);
+    contract.pdfPath = await generateContractPdf({
+      contract,
+      region: signedRegion,
+      company,
+      district,
+      zone: defaultZone,
+      purpose: purposeSavdo,
+      tariff: tariffDoc,
+    });
     await contract.save();
 
     activeApp.status = APPLICATION_STATUS.SIGNED;
