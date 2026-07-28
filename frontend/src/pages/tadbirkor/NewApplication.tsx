@@ -1,16 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateApplication, usePreviewApplication, type PreviewApplicationResult } from '../../api/applications';
-import { useDistricts, usePurposes, useZones } from '../../api/references';
+import { useDistricts, usePurposes, useTariff, useZones } from '../../api/references';
 import { Card, CardHeader } from '../../components/Card';
 import { MapView } from '../../components/MapView';
 import type { DrawnPolygon } from '../../components/DrawControl';
 import { formatSom } from '../../lib/format';
 
+// Backenddagi pricing.js formulasi bilan bir xil: oylik_ijara = Sbaza x M x Ktuman x Kzona x Kmaqsad x Kmavsum
+function monthsBetween(from: string, to: string) {
+  if (!from || !to) return 0;
+  const start = new Date(from);
+  const end = new Date(to);
+  const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+  return Math.max(1, months + (end.getDate() >= start.getDate() ? 1 : 0));
+}
+
 export function TadbirkorNewApplication() {
   const { data: districts } = useDistricts();
   const { data: purposes } = usePurposes();
   const { data: zones } = useZones();
+  const { data: tariff } = useTariff();
   const createApplication = useCreateApplication();
   const preview = usePreviewApplication();
   const navigate = useNavigate();
@@ -24,8 +34,24 @@ export function TadbirkorNewApplication() {
   const [comment, setComment] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [priceResult, setPriceResult] = useState<PreviewApplicationResult | null>(null);
+  const [calcAreaM2, setCalcAreaM2] = useState('');
 
   const districtId = districts?.[0]?._id;
+
+  const calcResult = (() => {
+    const area = Number(calcAreaM2);
+    const district = districts?.find((d) => d._id === districtId);
+    const zone = zones?.find((z) => z._id === zoneId);
+    const purpose = purposes?.find((p) => p._id === purposeId);
+    if (!area || area <= 0 || !tariff || !district || !zone || !purpose || !from || !to) return null;
+    const months = monthsBetween(from, to);
+    const isSeasonal = usageType.toLowerCase().includes('mavsum');
+    const kMavsum = isSeasonal ? tariff.seasonalCoefficient : 1;
+    const monthlyRent = Math.round(tariff.baseRate * area * district.coefficient * zone.coefficient * purpose.coefficient * kMavsum);
+    const exploitationFee = Math.round(tariff.exploitationRate * area * months);
+    const total = monthlyRent * months + exploitationFee;
+    return { monthlyRent, exploitationFee, months, total };
+  })();
 
   useEffect(() => {
     if (purposes && purposes.length > 0 && !purposeId) {
@@ -181,6 +207,31 @@ export function TadbirkorNewApplication() {
               <input required type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
             </div>
           </div>
+
+          <div className="rounded-lg border border-dashed border-slate-300 p-3">
+            <label className="mb-1 block text-xs font-medium text-slate-600">Narx kalkulyatori (taxminiy maydon bo'yicha)</label>
+            <input
+              type="number"
+              min="1"
+              value={calcAreaM2}
+              onChange={(e) => setCalcAreaM2(e.target.value)}
+              placeholder="Taxminiy maydon, m²"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
+            {calcAreaM2 && !calcResult && (
+              <p className="mt-2 text-xs text-slate-400">Mahalla, maqsad va davrni tanlang — narx avtomatik hisoblanadi.</p>
+            )}
+            {calcResult && (
+              <div className="mt-2 space-y-1 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
+                <Row label="Oylik ijara" value={formatSom(calcResult.monthlyRent)} />
+                <Row label="Ekspluatatsiya to'lovi" value={formatSom(calcResult.exploitationFee)} />
+                <Row label="Muddat" value={`${calcResult.months} oy`} />
+                <hr className="my-1 border-slate-200" />
+                <Row label="Taxminiy jami" value={formatSom(calcResult.total)} bold />
+              </div>
+            )}
+          </div>
+
           <div>
             <label className="mb-1 block text-xs text-slate-500">Qo'shimcha ma'lumot</label>
             <textarea value={comment} onChange={(e) => setComment(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" rows={3} placeholder="Izoh kiriting..." />
@@ -190,7 +241,7 @@ export function TadbirkorNewApplication() {
 
           {priceResult && (
             <div className="space-y-1 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
-              <p className="mb-1 font-medium text-slate-700">3. Dastlabki narx</p>
+              <p className="mb-1 font-medium text-slate-700">3. Aniq narx (chizilgan maydon bo'yicha)</p>
               <Row label="Oylik ijara" value={formatSom(priceResult.price.monthlyRent)} />
               <Row label="Ekspluatatsiya to'lovi" value={formatSom(priceResult.price.exploitationFee)} />
               <Row label="Muddat" value={`${priceResult.price.months} oy`} />
