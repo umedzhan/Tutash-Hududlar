@@ -8,7 +8,8 @@ import { formatSom } from '../../lib/format';
 export function AdminReferences() {
   const { data: companies, isLoading } = useCompanies();
   const { data: districts, isLoading: districtsLoading } = useDistricts();
-  const { data: zones, isLoading: zonesLoading } = useZones();
+  const [zoneDistrictFilter, setZoneDistrictFilter] = useState('');
+  const { data: zones, isLoading: zonesLoading } = useZones(zoneDistrictFilter || undefined);
   const { data: purposes, isLoading: purposesLoading } = usePurposes();
   const { data: tariff, isLoading: tariffLoading } = useTariff();
   const createCompany = useCreateCompany();
@@ -81,18 +82,37 @@ export function AdminReferences() {
       </Card>
 
       <Card>
-        <CardHeader title="Zonalar (mahallalar)" />
+        <CardHeader
+          title={`Zonalar (mahallalar)${zones ? ` — ${zones.length}` : ''}`}
+          action={
+            <select
+              value={zoneDistrictFilter}
+              onChange={(e) => setZoneDistrictFilter(e.target.value)}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+            >
+              <option value="">Barcha tumanlar</option>
+              {(districts ?? []).map((d) => (
+                <option key={d._id} value={d._id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          }
+        />
         {zonesLoading ? (
           <p className="p-4 text-slate-400">Yuklanmoqda...</p>
         ) : (
-          <DataTable
-            columns={[
-              { header: 'Mahalla nomi', render: (z) => z.name },
-              { header: 'Kzona', render: (z) => z.coefficient },
-            ]}
-            rows={zones ?? []}
-            rowKey={(z) => z._id}
-          />
+          <div className="max-h-96 overflow-y-auto">
+            <DataTable
+              columns={[
+                { header: 'Mahalla nomi', render: (z) => z.name },
+                { header: 'Tuman/shahar', render: (z) => districts?.find((d) => d._id === z.districtId)?.name ?? '-' },
+                { header: 'Kzona', render: (z) => z.coefficient },
+              ]}
+              rows={zones ?? []}
+              rowKey={(z) => z._id}
+            />
+          </div>
         )}
       </Card>
 

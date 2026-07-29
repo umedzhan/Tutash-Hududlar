@@ -12,13 +12,28 @@ const MONTH_NAMES = [
   'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr',
 ];
 
-const HOKIMIYAT_REKVIZIT = {
-  name: 'TERMIZ SHAHAR HOKIMLIGI',
-  address: "Surxondaryo viloyati, Termiz shahri, II Do'stlik mahallasi, At-Termiziy ko'chasi, 40",
-  stir: '200473934',
-  bank: 'MB BB HKKM Toshkent sh',
-  mfo: '00014',
-};
+// Ijaraga beruvchi — hudud joylashgan tuman/shahar hokimligi. Termiz shahri uchun
+// haqiqiy rekvizitlar (roadmap/termezcity.pdf namunasidan) ma'lum; boshqa 14 ta
+// tuman uchun aniq STIR/bank rekvizitlari hozircha topilmagani sabab umumiy
+// (mock) shablon ishlatiladi — faqat nomi va manzili tumanga mos moslashadi.
+function hokimiyatRekvizit(districtName) {
+  if (districtName === 'Termiz shahri') {
+    return {
+      name: 'TERMIZ SHAHAR HOKIMLIGI',
+      address: "Surxondaryo viloyati, Termiz shahri, II Do'stlik mahallasi, At-Termiziy ko'chasi, 40",
+      stir: '200473934',
+      bank: 'MB BB HKKM Toshkent sh',
+      mfo: '00014',
+    };
+  }
+  return {
+    name: `${(districtName ?? 'Termiz shahri').toUpperCase()} HOKIMLIGI`,
+    address: `Surxondaryo viloyati, ${districtName ?? 'Termiz shahri'}`,
+    stir: '-',
+    bank: 'MB BB HKKM Toshkent sh',
+    mfo: '00014',
+  };
+}
 
 function formatSom(amount) {
   return `${Math.round(amount).toLocaleString('ru-RU')} so'm`;
@@ -40,7 +55,8 @@ function formatDateTime(date) {
 
 function cityLabel(districtName) {
   if (!districtName) return 'Termiz sh.';
-  return `${districtName.replace(/\s*shahri$/i, '')} sh.`;
+  if (/shahri$/i.test(districtName)) return `${districtName.replace(/\s*shahri$/i, '')} sh.`;
+  return districtName;
 }
 
 function sectionTitle(doc, text) {
@@ -62,7 +78,7 @@ function fieldLine(doc, label, value) {
 // E-IMZO orqali imzolangan hujjatlarga qo'shiladigan "hujjatlarni imzolash protokoli"
 // varag'i (real E-IMZO portalining imzo tasdiqlash sahifasi ko'rinishida) — QR kod orqali
 // hujjat raqami, imzo identifikatori va imzolangan sana tekshiriladi.
-function drawSignatureProtocolPage(doc, { contract, company, qrBuffer }) {
+function drawSignatureProtocolPage(doc, { contract, company, qrBuffer, hokimiyat }) {
   const topY = doc.y;
   const leftWidth = PAGE_WIDTH - PAGE_MARGIN * 2 - 130;
 
@@ -103,19 +119,19 @@ function drawSignatureProtocolPage(doc, { contract, company, qrBuffer }) {
   y = doc.y + 4;
 
   doc.font('Helvetica').fontSize(9);
-  doc.text(HOKIMIYAT_REKVIZIT.name, leftX, y, { width: colWidth, underline: true });
+  doc.text(hokimiyat.name, leftX, y, { width: colWidth, underline: true });
   doc.text(company.name, rightX, y, { width: colWidth, underline: true });
   y = doc.y + 6;
 
   doc.text('STIR', leftX, y, { width: 60 });
-  doc.text(HOKIMIYAT_REKVIZIT.stir, leftX + 60, y, { width: colWidth - 60, underline: true });
+  doc.text(hokimiyat.stir, leftX + 60, y, { width: colWidth - 60, underline: true });
   doc.text('STIR', rightX, y, { width: 60 });
   doc.text(company.stir, rightX + 60, y, { width: colWidth - 60, underline: true });
   y += 15;
 
   doc.text('Manzil', leftX, y, { width: 60 });
-  doc.text(HOKIMIYAT_REKVIZIT.address, leftX + 60, y, { width: colWidth - 60, underline: true });
-  const addressHeight = doc.heightOfString(HOKIMIYAT_REKVIZIT.address, { width: colWidth - 60 });
+  doc.text(hokimiyat.address, leftX + 60, y, { width: colWidth - 60, underline: true });
+  const addressHeight = doc.heightOfString(hokimiyat.address, { width: colWidth - 60 });
   y += Math.max(addressHeight, 12) + 20;
 
   doc.font('Helvetica-Bold').fontSize(11).text("Hujjat haqida ma'lumot", PAGE_MARGIN, y);
@@ -137,6 +153,8 @@ export async function generateContractPdf({ contract, region, company, district,
   const penaltyPercent = tariff ? (tariff.penaltyRatePerDay * 100).toFixed(2) : '0.10';
   const penaltyCap = tariff ? Math.round(tariff.penaltyCapPercent * 100) : 15;
 
+  const hokimiyat = hokimiyatRekvizit(district?.name);
+
   const isSigned = Boolean(contract.eSign?.signed && contract.eSign?.mockSignatureId);
   let qrBuffer = null;
   if (isSigned) {
@@ -155,7 +173,7 @@ export async function generateContractPdf({ contract, region, company, district,
     doc.pipe(stream);
 
     if (isSigned) {
-      drawSignatureProtocolPage(doc, { contract, company, qrBuffer });
+      drawSignatureProtocolPage(doc, { contract, company, qrBuffer, hokimiyat });
     }
 
     doc.font('Helvetica-Bold').fontSize(15).text(`IJARA SHARTNOMASI No. ${contract.contractNumber}`, { align: 'center' });
@@ -163,14 +181,14 @@ export async function generateContractPdf({ contract, region, company, district,
 
     doc.font('Helvetica').fontSize(10.5);
     const dateY = doc.y;
-    doc.text(cityLabel(region.district), 56, dateY);
+    doc.text(cityLabel(district?.name ?? region.district), 56, dateY);
     doc.text(formatLongDate(contract.createdAt ?? new Date()), 56, dateY, { align: 'right' });
     doc.moveDown(1);
 
     sectionTitle(doc, '1. Umumiy qoidalar');
     paragraph(
       doc,
-      `${HOKIMIYAT_REKVIZIT.name} nomidan "Tutash hududlar" elektron platformasi orqali ish yurituvchi (keyingi o'rinlarda "Ijaraga beruvchi" deb yuritiladi) bir tomondan va "${company.name}" (keyingi o'rinlarda "Ijarachi" deb yuritiladi) nomidan Ustav asosida ish yurituvchi direktor ${company.director} ikkinchi tomondan, birgalikda "Tomonlar" deb ataluvchilar, mazkur shartnomani (keyingi o'rinlarda "Shartnoma" deb yuritiladi) O'zbekiston Respublikasi Fuqarolik kodeksining ijara shartnomasiga oid moddalari asosida quyidagilar to'g'risida tuzdilar.`,
+      `${hokimiyat.name} nomidan "Tutash hududlar" elektron platformasi orqali ish yurituvchi (keyingi o'rinlarda "Ijaraga beruvchi" deb yuritiladi) bir tomondan va "${company.name}" (keyingi o'rinlarda "Ijarachi" deb yuritiladi) nomidan Ustav asosida ish yurituvchi direktor ${company.director} ikkinchi tomondan, birgalikda "Tomonlar" deb ataluvchilar, mazkur shartnomani (keyingi o'rinlarda "Shartnoma" deb yuritiladi) O'zbekiston Respublikasi Fuqarolik kodeksining ijara shartnomasiga oid moddalari asosida quyidagilar to'g'risida tuzdilar.`,
     );
 
     sectionTitle(doc, '2. Shartnoma predmeti');
@@ -242,23 +260,23 @@ export async function generateContractPdf({ contract, region, company, district,
     y = doc.y + 4;
 
     doc.font('Helvetica').fontSize(9.5);
-    doc.text(HOKIMIYAT_REKVIZIT.name, leftX, y, { width: colWidth });
+    doc.text(hokimiyat.name, leftX, y, { width: colWidth });
     doc.text(`"${company.name}"`, rightX, y, { width: colWidth });
     y = doc.y + 6;
 
-    doc.text(`Manzil: ${HOKIMIYAT_REKVIZIT.address}`, leftX, y, { width: colWidth });
+    doc.text(`Manzil: ${hokimiyat.address}`, leftX, y, { width: colWidth });
     doc.text(`STIR: ${company.stir}`, rightX, y, { width: colWidth });
-    y = Math.max(doc.heightOfString(`Manzil: ${HOKIMIYAT_REKVIZIT.address}`, { width: colWidth }), 12) + y + 6;
+    y = Math.max(doc.heightOfString(`Manzil: ${hokimiyat.address}`, { width: colWidth }), 12) + y + 6;
 
-    doc.text(`STIR: ${HOKIMIYAT_REKVIZIT.stir}`, leftX, y, { width: colWidth });
+    doc.text(`STIR: ${hokimiyat.stir}`, leftX, y, { width: colWidth });
     doc.text(`Direktor: ${company.director}`, rightX, y, { width: colWidth });
     y += 16;
 
-    doc.text(`Bank: ${HOKIMIYAT_REKVIZIT.bank}`, leftX, y, { width: colWidth });
+    doc.text(`Bank: ${hokimiyat.bank}`, leftX, y, { width: colWidth });
     doc.text(`Telefon: ${company.phone}`, rightX, y, { width: colWidth });
     y += 16;
 
-    doc.text(`MFO: ${HOKIMIYAT_REKVIZIT.mfo}`, leftX, y, { width: colWidth });
+    doc.text(`MFO: ${hokimiyat.mfo}`, leftX, y, { width: colWidth });
     y += 30;
 
     doc.font('Helvetica-Bold').fontSize(10.5);

@@ -8,7 +8,8 @@ export async function listDistricts(req, res) {
 }
 
 export async function listZones(req, res) {
-  res.json(await Zone.find().sort({ type: 1 }));
+  const filter = req.query.districtId ? { districtId: req.query.districtId } : {};
+  res.json(await Zone.find(filter).sort({ name: 1 }));
 }
 
 export async function listPurposes(req, res) {

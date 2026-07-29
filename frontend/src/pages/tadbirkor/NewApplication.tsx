@@ -19,13 +19,13 @@ function monthsBetween(from: string, to: string) {
 export function TadbirkorNewApplication() {
   const { data: districts } = useDistricts();
   const { data: purposes } = usePurposes();
-  const { data: zones } = useZones();
   const { data: tariff } = useTariff();
   const createApplication = useCreateApplication();
   const preview = usePreviewApplication();
   const navigate = useNavigate();
 
   const [polygon, setPolygon] = useState<DrawnPolygon | null>(null);
+  const [districtId, setDistrictId] = useState('');
   const [zoneId, setZoneId] = useState('');
   const [purposeId, setPurposeId] = useState('');
   const [usageType, setUsageType] = useState('Doimiy');
@@ -36,7 +36,7 @@ export function TadbirkorNewApplication() {
   const [priceResult, setPriceResult] = useState<PreviewApplicationResult | null>(null);
   const [calcAreaM2, setCalcAreaM2] = useState('');
 
-  const districtId = districts?.[0]?._id;
+  const { data: zones } = useZones(districtId);
 
   const calcResult = (() => {
     const area = Number(calcAreaM2);
@@ -54,13 +54,20 @@ export function TadbirkorNewApplication() {
   })();
 
   useEffect(() => {
+    if (districts && districts.length > 0 && !districtId) {
+      setDistrictId(districts[0]._id);
+    }
+  }, [districts, districtId]);
+
+  useEffect(() => {
     if (purposes && purposes.length > 0 && !purposeId) {
       setPurposeId(purposes[0]._id);
     }
   }, [purposes, purposeId]);
 
   useEffect(() => {
-    if (zones && zones.length > 0 && !zoneId) {
+    if (!zones || zones.length === 0) return;
+    if (!zoneId || !zones.some((z) => z._id === zoneId)) {
       setZoneId(zones[0]._id);
     }
   }, [zones, zoneId]);
@@ -162,6 +169,20 @@ export function TadbirkorNewApplication() {
       <Card>
         <CardHeader title="2. Ariza ma'lumotlari" />
         <form onSubmit={handleSubmit} className="space-y-3 p-4">
+          <div>
+            <label className="mb-1 block text-xs text-slate-500">Tuman/shahar</label>
+            <select
+              value={districtId}
+              onChange={(e) => setDistrictId(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            >
+              {(districts ?? []).map((d) => (
+                <option key={d._id} value={d._id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="mb-1 block text-xs text-slate-500">Mahalla</label>
             <select

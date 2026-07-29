@@ -9,10 +9,11 @@ export function useDistricts() {
   });
 }
 
-export function useZones() {
+export function useZones(districtId?: string) {
   return useQuery({
-    queryKey: ['zones'],
-    queryFn: async () => (await apiClient.get<Zone[]>('/references/zones')).data,
+    queryKey: ['zones', districtId],
+    queryFn: async () => (await apiClient.get<Zone[]>('/references/zones', { params: districtId ? { districtId } : {} })).data,
+    enabled: districtId === undefined || Boolean(districtId),
   });
 }
 

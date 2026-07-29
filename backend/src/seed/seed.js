@@ -30,6 +30,11 @@ import { calculatePrice } from '../services/pricing.js';
 import { decideStage, initStages } from '../services/applicationWorkflow.js';
 import { autoGenerateContract } from '../controllers/contractController.js';
 import { generateContractPdf } from '../services/contractPdf.js';
+import {
+  DISTRICTS as SURXONDARYO_DISTRICTS,
+  ZONES_BY_DISTRICT as SURXONDARYO_ZONES_BY_DISTRICT,
+  REFERENCE_BASE_RATE as SURXONDARYO_REFERENCE_BASE_RATE,
+} from './surxondaryoZones.js';
 
 function squarePolygon(centerLng, centerLat, sizeDeg) {
   const half = sizeDeg / 2;
@@ -144,55 +149,26 @@ async function run() {
   });
 
   console.log('[seed] ma\'lumotnomalar (tuman, zonalar, maqsadlar, tarif) yaratilmoqda...');
-  const district = await District.create({ name: 'Termiz shahri', code: 'TERMIZ', coefficient: 2.0 });
 
-  // Mahalla (zona) koeffitsiyentlari — Termiz shahar Xalq deputatlari Kengashining
-  // 2026-yil uchun yer solig'i stavkalarini belgilash haqidagi qaroridan (yuridik
-  // shaxslar uchun mahalla kesimidagi koeffitsiyentlar, 2-ilova). Aniq GIS chegaralari
-  // mavjud bo'lmagani uchun tadbirkor mahallani nomi bo'yicha ro'yxatdan tanlaydi.
-  const MAHALLA_KOEFF = [
-    ['Abdulla Avloniy', 1.2],
-    ['Abdurahmon Jomiy', 1.0],
-    ['Alisher Navoiy', 1.0],
-    ['Alpomish', 1.2],
-    ['Amu sohillari', 1.0],
-    ['Baynalmilal', 1.0],
-    ["Bog'ishamol", 1.2],
-    ["Bog'zor", 1.1],
-    ["Bo'ston", 1.1],
-    ['Chegara', 1.0],
-    ["Do'stlik", 1.1],
-    ['Eskishahar', 1.0],
-    ['Farhod', 1.0],
-    ["Gulira'no", 1.0],
-    ['Guliston', 1.1],
-    ['Jayhun', 1.2],
-    ["Jo'yjangal", 1.1],
-    ["Kattabog'", 1.2],
-    ['Kokildorota', 1.0],
-    ["Ma'rifat", 1.2],
-    ['Majnuntol', 1.0],
-    ['Manguzar', 1.0],
-    ['Mehrobod', 1.0],
-    ['Namuna', 1.0],
-    ["Navro'z", 1.2],
-    ['Nurli kelajak', 1.0],
-    ['Pattakesar', 1.0],
-    ['Saxovat', 1.2],
-    ['Shifokor', 1.0],
-    ['Shodlik', 1.2],
-    ['Surxon sohili', 1.2],
-    ["Temiryo'lchi", 1.0],
-    ['Tinchlik', 1.1],
-    ["Tuproqqo'rg'on", 1.2],
-    ['Turon', 1.1],
-    ["O'zbekiston", 1.2],
-    ['Yulduz', 1.2],
-  ];
-  const zones = await Zone.insertMany(
-    MAHALLA_KOEFF.map(([name, coefficient]) => ({ districtId: district._id, name, coefficient })),
-  );
-  const defaultZone = zones.find((z) => z.name === 'Alisher Navoiy');
+  // Surxondaryo viloyati bo'yicha 15 ta tuman/shahar va ularning mahalla (zona)
+  // koeffitsiyentlari — roadmap/qaror/*.pdf dagi 2026-yil yer solig'i qarorlaridan
+  // (batafsil izoh surxondaryoZones.js faylida). Aniq GIS chegaralari mavjud
+  // bo'lmagani uchun tadbirkor mahallani nomi bo'yicha ro'yxatdan tanlaydi.
+  const districtDocs = {};
+  for (const d of SURXONDARYO_DISTRICTS) {
+    const coefficient = Math.round((d.baseRate / SURXONDARYO_REFERENCE_BASE_RATE) * 100) / 100;
+    districtDocs[d.code] = await District.create({ name: d.name, code: d.code, coefficient });
+  }
+  const district = districtDocs.TERMIZ_SH;
+
+  let zones = [];
+  for (const [code, list] of Object.entries(SURXONDARYO_ZONES_BY_DISTRICT)) {
+    const created = await Zone.insertMany(
+      list.map(([name, coefficient]) => ({ districtId: districtDocs[code]._id, name, coefficient })),
+    );
+    zones = zones.concat(created);
+  }
+  const defaultZone = zones.find((z) => z.name === 'Alisher Navoiy' && String(z.districtId) === String(district._id));
 
   const purposeSavdo = await Purpose.create({ name: "Savdo va xizmat ko'rsatish", coefficient: 1.0, seasonalAllowed: false });
   await Purpose.create({ name: 'Umumiy ovqatlanish (terrassa)', coefficient: 1.3, seasonalAllowed: true });

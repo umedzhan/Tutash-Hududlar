@@ -50,9 +50,9 @@ Namunaviy foydalanuvchilar (parol: `parol123`):
 |--------------|----------------|
 | Super admin  | +998900000001  |
 | Kadastr      | +998900000002  |
-| Arxitektura  | +998900000003  |
-| Soliq        | +998900000004  |
-| Tadbirkor    | +998900000005  |
+| Tadbirkor    | +998900000003  |
+| Arxitektura  | +998900000004  |
+| Soliq        | +998900000005  |
 
 ### Development rejimida ishga tushirish
 
