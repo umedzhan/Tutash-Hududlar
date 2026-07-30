@@ -273,7 +273,7 @@ export async function generateContractPdf({ contract, region, company, district,
     y += 16;
 
     doc.text(`Bank: ${hokimiyat.bank}`, leftX, y, { width: colWidth });
-    doc.text(`Telefon: ${company.phone}`, rightX, y, { width: colWidth });
+    doc.text(`Telefon: ${company.phones?.[0] ?? '-'}`, rightX, y, { width: colWidth });
     y += 16;
 
     doc.text(`MFO: ${hokimiyat.mfo}`, leftX, y, { width: colWidth });

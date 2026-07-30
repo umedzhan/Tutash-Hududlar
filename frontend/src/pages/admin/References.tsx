@@ -56,7 +56,7 @@ export function AdminReferences() {
               { header: 'Nomi', render: (c) => c.name },
               { header: 'STIR', render: (c) => c.stir },
               { header: 'Direktor', render: (c) => c.director },
-              { header: 'Telefon', render: (c) => c.phone },
+              { header: 'Telefon', render: (c) => c.phones?.join(', ') ?? '-' },
             ]}
             rows={companies ?? []}
             rowKey={(c) => c._id}

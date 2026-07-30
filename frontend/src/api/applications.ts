@@ -43,6 +43,13 @@ export function usePreviewApplication() {
   });
 }
 
+export interface ApplicationPhotos {
+  shimol: File;
+  janub: File;
+  sharq: File;
+  gharb: File;
+}
+
 export interface CreateApplicationPayload {
   geometry: GeometryInput;
   districtId: string;
@@ -52,13 +59,28 @@ export interface CreateApplicationPayload {
   usageType: string;
   period: { from: string; to: string };
   comment?: string;
+  photos: ApplicationPhotos;
 }
 
 export function useCreateApplication() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: CreateApplicationPayload) =>
-      (await apiClient.post<Application>('/applications', payload)).data,
+    mutationFn: async ({ photos, ...payload }: CreateApplicationPayload) => {
+      const formData = new FormData();
+      formData.append('geometry', JSON.stringify(payload.geometry));
+      formData.append('districtId', payload.districtId);
+      formData.append('purposeId', payload.purposeId);
+      formData.append('zoneId', payload.zoneId);
+      formData.append('purpose', payload.purpose);
+      formData.append('usageType', payload.usageType);
+      formData.append('period', JSON.stringify(payload.period));
+      formData.append('comment', payload.comment ?? '');
+      formData.append('shimol', photos.shimol);
+      formData.append('janub', photos.janub);
+      formData.append('sharq', photos.sharq);
+      formData.append('gharb', photos.gharb);
+      return (await apiClient.post<Application>('/applications', formData)).data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       queryClient.invalidateQueries({ queryKey: ['regions'] });

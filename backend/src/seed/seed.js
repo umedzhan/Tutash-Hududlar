@@ -102,7 +102,7 @@ async function run() {
     name: 'Alisher Navoiy MChJ',
     stir: '304123456',
     director: 'Alisher Navoiyev',
-    phone: '+998712031000',
+    phones: ['+998712031000'],
   });
 
   const passwordHash = await bcrypt.hash('parol123', 10);
@@ -296,10 +296,10 @@ async function run() {
 
   console.log('[seed] namunaviy arizalar (turli holatlarda) yaratilmoqda...');
 
-  const otherCompany1 = await Company.create({ name: '"Oq oltin" MChJ', stir: '304987654', director: 'Bekzod Rahimov', phone: '+998911112233' });
-  const otherCompany2 = await Company.create({ name: '"Baraka savdo" MChJ', stir: '304987655', director: 'Jasur Aliyev', phone: '+998911112244' });
-  const otherCompany3 = await Company.create({ name: '"Zarafshon food" MChJ', stir: '304987656', director: 'Otabek Karimov', phone: '+998911112255' });
-  const otherCompany4 = await Company.create({ name: '"Mega servis" MChJ', stir: '304987657', director: 'Dilshod Yusupov', phone: '+998911112266' });
+  const otherCompany1 = await Company.create({ name: '"Oq oltin" MChJ', stir: '304987654', director: 'Bekzod Rahimov', phones: ['+998911112233'] });
+  const otherCompany2 = await Company.create({ name: '"Baraka savdo" MChJ', stir: '304987655', director: 'Jasur Aliyev', phones: ['+998911112244'] });
+  const otherCompany3 = await Company.create({ name: '"Zarafshon food" MChJ', stir: '304987656', director: 'Otabek Karimov', phones: ['+998911112255'] });
+  const otherCompany4 = await Company.create({ name: '"Mega servis" MChJ', stir: '304987657', director: 'Dilshod Yusupov', phones: ['+998911112266'] });
 
   const otherUser1 = await User.create({ name: 'Bekzod Rahimov', phone: '+998911112233', passwordHash, role: ROLES.TADBIRKOR, companyId: otherCompany1._id });
   const otherUser2 = await User.create({ name: 'Jasur Aliyev', phone: '+998911112244', passwordHash, role: ROLES.TADBIRKOR, companyId: otherCompany2._id });

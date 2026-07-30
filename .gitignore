@@ -4,6 +4,8 @@ build/
 .env
 *.log
 backend/uploads/contracts/*.pdf
+backend/uploads/companies/*
+backend/uploads/applications/*
 .DS_Store
 .claude/
 roadmap/

@@ -153,6 +153,18 @@ export function AdminApplicationDetail() {
           </div>
         </Card>
 
+        {application.photos && (
+          <Card>
+            <CardHeader title="Hudud rasmlari (4 tarafdan)" />
+            <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-4">
+              <PhotoThumb label="Shimol" src={application.photos.shimol} />
+              <PhotoThumb label="Janub" src={application.photos.janub} />
+              <PhotoThumb label="Sharq" src={application.photos.sharq} />
+              <PhotoThumb label="G'arb" src={application.photos.gharb} />
+            </div>
+          </Card>
+        )}
+
         {application.geometryVersions.length > 1 && (
           <Card>
             <CardHeader title="Chizma versiyalari" />
@@ -321,5 +333,14 @@ function Info({ label, value }: { label: string; value: string }) {
       <p className="text-xs text-slate-400">{label}</p>
       <p className="text-slate-800">{value}</p>
     </div>
+  );
+}
+
+function PhotoThumb({ label, src }: { label: string; src: string }) {
+  return (
+    <a href={src} target="_blank" rel="noreferrer" className="block">
+      <img src={src} alt={label} className="h-24 w-full rounded-lg border border-slate-200 object-cover" />
+      <p className="mt-1 text-center text-xs text-slate-500">{label}</p>
+    </a>
   );
 }

@@ -27,6 +27,7 @@ import { TadbirkorMyPayments } from './pages/tadbirkor/MyPayments';
 import { TadbirkorNotifications } from './pages/tadbirkor/Notifications';
 import { TadbirkorRequests } from './pages/tadbirkor/Requests';
 import { TadbirkorDocuments } from './pages/tadbirkor/Documents';
+import { TadbirkorProfile } from './pages/tadbirkor/Profile';
 
 const STAFF_ROLES = ['KADASTR', 'ARXITEKTURA', 'SOLIQ'];
 
@@ -80,6 +81,7 @@ export const router = createBrowserRouter([
           { path: 'xabarnomalar', element: <TadbirkorNotifications /> },
           { path: 'murojaatlarim', element: <TadbirkorRequests /> },
           { path: 'hujjatlarim', element: <TadbirkorDocuments /> },
+          { path: 'profil', element: <TadbirkorProfile /> },
         ],
       },
     ],

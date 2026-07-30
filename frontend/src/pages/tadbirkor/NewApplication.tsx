@@ -35,6 +35,12 @@ export function TadbirkorNewApplication() {
   const [error, setError] = useState<string | null>(null);
   const [priceResult, setPriceResult] = useState<PreviewApplicationResult | null>(null);
   const [calcAreaM2, setCalcAreaM2] = useState('');
+  const [photos, setPhotos] = useState<{ shimol: File | null; janub: File | null; sharq: File | null; gharb: File | null }>({
+    shimol: null,
+    janub: null,
+    sharq: null,
+    gharb: null,
+  });
 
   const { data: zones } = useZones(districtId);
 
@@ -117,6 +123,10 @@ export function TadbirkorNewApplication() {
       setError("Chizma hali tekshirilmadi — biroz kuting yoki chizmani qayta chizing");
       return;
     }
+    if (!photos.shimol || !photos.janub || !photos.sharq || !photos.gharb) {
+      setError("Hududni 4 tarafdan (shimol, janub, sharq, g'arb) rasmga olib yuklang");
+      return;
+    }
     setError(null);
     const purposeName = purposes?.find((p) => p._id === purposeId)?.name ?? '';
     try {
@@ -129,6 +139,7 @@ export function TadbirkorNewApplication() {
         usageType,
         period: { from, to },
         comment,
+        photos: { shimol: photos.shimol, janub: photos.janub, sharq: photos.sharq, gharb: photos.gharb },
       });
       navigate('/tadbirkor/arizalarim');
     } catch (err) {
@@ -258,6 +269,18 @@ export function TadbirkorNewApplication() {
             <textarea value={comment} onChange={(e) => setComment(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" rows={3} placeholder="Izoh kiriting..." />
           </div>
 
+          <div className="rounded-lg border border-dashed border-slate-300 p-3">
+            <label className="mb-2 block text-xs font-medium text-slate-600">
+              Ijaraga olmoqchi bo'lgan hududni 4 tarafdan rasmga olib yuboring
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <PhotoInput label="Shimol" file={photos.shimol} onChange={(f) => setPhotos((p) => ({ ...p, shimol: f }))} />
+              <PhotoInput label="Janub" file={photos.janub} onChange={(f) => setPhotos((p) => ({ ...p, janub: f }))} />
+              <PhotoInput label="Sharq" file={photos.sharq} onChange={(f) => setPhotos((p) => ({ ...p, sharq: f }))} />
+              <PhotoInput label="G'arb" file={photos.gharb} onChange={(f) => setPhotos((p) => ({ ...p, gharb: f }))} />
+            </div>
+          </div>
+
           {preview.isPending && <p className="text-xs text-slate-400">Narx hisoblanmoqda...</p>}
 
           {priceResult && (
@@ -275,7 +298,7 @@ export function TadbirkorNewApplication() {
 
           <button
             type="submit"
-            disabled={createApplication.isPending || !priceResult}
+            disabled={createApplication.isPending || !priceResult || !photos.shimol || !photos.janub || !photos.sharq || !photos.gharb}
             className="w-full rounded-lg bg-brand py-2.5 text-sm font-medium text-white hover:bg-brand-light disabled:opacity-60"
           >
             4. Ariza yuborish
@@ -292,5 +315,20 @@ function Row({ label, value, bold }: { label: string; value: string; bold?: bool
       <span>{label}</span>
       <span>{value}</span>
     </div>
+  );
+}
+
+function PhotoInput({ label, file, onChange }: { label: string; file: File | null; onChange: (file: File | null) => void }) {
+  return (
+    <label className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-slate-300 p-2 text-center text-xs hover:bg-slate-50">
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+      />
+      <span className="font-medium text-slate-600">{label}</span>
+      <span className={file ? 'text-emerald-600' : 'text-slate-400'}>{file ? file.name : 'Rasm tanlang'}</span>
+    </label>
   );
 }

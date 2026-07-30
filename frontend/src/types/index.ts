@@ -28,7 +28,12 @@ export interface Company {
   name: string;
   stir: string;
   director: string;
-  phone: string;
+  phones: string[];
+  email?: string;
+  districtId?: District | string | null;
+  zoneId?: Zone | string | null;
+  address?: string;
+  registrationDocument?: string | null;
 }
 
 export interface AuthUser {
@@ -147,6 +152,7 @@ export interface Application {
   address: string;
   geometry: { type: 'Polygon'; coordinates: number[][][] };
   areaM2: number;
+  photos: { shimol: string; janub: string; sharq: string; gharb: string };
   geometryVersions: GeometryVersion[];
   currentStage: Stage | null;
   stages: ApplicationStageRecord[];

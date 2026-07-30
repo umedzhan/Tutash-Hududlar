@@ -69,6 +69,13 @@ const applicationSchema = new mongoose.Schema(
     areaM2: { type: Number, required: true },
     geometryVersions: { type: [geometryVersionSchema], default: [] },
 
+    photos: {
+      shimol: { type: String, default: null },
+      janub: { type: String, default: null },
+      sharq: { type: String, default: null },
+      gharb: { type: String, default: null },
+    },
+
     currentStage: { type: String, enum: [...STAGES, null], default: 'cadastre' },
     pendingStage: { type: String, enum: [...STAGES, null], default: null },
     stages: { type: [stageRecordSchema], default: [] },

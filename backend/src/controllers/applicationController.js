@@ -69,8 +69,23 @@ export async function previewApplication(req, res) {
   res.json({ areaM2, price });
 }
 
+const PHOTO_SIDES = ['shimol', 'janub', 'sharq', 'gharb'];
+const PHOTO_SIDE_LABEL = { shimol: 'shimol', janub: 'janub', sharq: 'sharq', gharb: "g'arb" };
+
 export async function createApplication(req, res) {
-  const { geometry, districtId, purposeId, zoneId, purpose, usageType, period, comment } = req.body;
+  const { districtId, purposeId, zoneId, purpose, usageType, comment } = req.body;
+  const geometry = typeof req.body.geometry === 'string' ? JSON.parse(req.body.geometry) : req.body.geometry;
+  const period = typeof req.body.period === 'string' ? JSON.parse(req.body.period) : req.body.period;
+
+  const files = req.files || {};
+  const photos = {};
+  for (const side of PHOTO_SIDES) {
+    const file = files[side]?.[0];
+    if (!file) {
+      return res.status(400).json({ message: `Hududning ${PHOTO_SIDE_LABEL[side]} tarafidan rasm yuklanmagan` });
+    }
+    photos[side] = `/uploads/applications/${file.filename}`;
+  }
 
   const { areaM2 } = await validateGeometry({ geometry });
   const priceSnapshot = await calculatePrice({
@@ -99,6 +114,7 @@ export async function createApplication(req, res) {
     address: `${district?.name ?? ''} — tadbirkor tomonidan chizilgan hudud`,
     geometry,
     areaM2,
+    photos,
     geometryVersions: [
       {
         version: 1,

@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Map, FileText, FileSignature, CreditCard, Bell, MessageSquare, Folder } from 'lucide-react';
+import { LayoutDashboard, Map, FileText, FileSignature, CreditCard, Bell, MessageSquare, Folder, User } from 'lucide-react';
 import { Sidebar } from '../components/Sidebar';
 import { Topbar } from '../components/Topbar';
 import type { NavItem } from '../components/Sidebar';
@@ -14,6 +14,7 @@ const TITLES: Record<string, string> = {
   '/tadbirkor/xabarnomalar': 'Xabarnomalar',
   '/tadbirkor/murojaatlarim': 'Murojaatlarim',
   '/tadbirkor/hujjatlarim': 'Hujjatlarim',
+  '/tadbirkor/profil': 'Foydalanuvchi profili',
 };
 
 export function TadbirkorLayout() {
@@ -31,6 +32,7 @@ export function TadbirkorLayout() {
     { to: '/tadbirkor/xabarnomalar', label: 'Xabarnomalar', icon: Bell, badge: unread || undefined },
     { to: '/tadbirkor/murojaatlarim', label: 'Murojaatlarim', icon: MessageSquare },
     { to: '/tadbirkor/hujjatlarim', label: 'Hujjatlarim', icon: Folder },
+    { to: '/tadbirkor/profil', label: 'Foydalanuvchi profili', icon: User },
   ];
 
   return (
