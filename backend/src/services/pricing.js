@@ -44,12 +44,10 @@ export async function calculatePrice({ areaM2, districtId, purposeId, zoneId, us
   const annualRent = Math.round(tariff.baseRate * areaM2 * district.coefficient * kZona * purpose.coefficient * kMavsum);
   const months = monthsBetween(dateFrom, dateTo);
   const years = yearsBetween(months);
-  const exploitationFee = Math.round(tariff.exploitationRate * areaM2 * months);
-  const total = annualRent * years + exploitationFee;
+  const total = annualRent * years;
 
   return {
     annualRent,
-    exploitationFee,
     months,
     years,
     total,

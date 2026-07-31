@@ -60,9 +60,8 @@ export function TadbirkorNewApplication() {
     const kMavsum = isSeasonal ? tariff.seasonalCoefficient : 1;
     const annualRent = Math.round(tariff.baseRate * area * district.coefficient * zone.coefficient * purpose.coefficient * kMavsum);
     const years = yearsBetween(months);
-    const exploitationFee = Math.round(tariff.exploitationRate * area * months);
-    const total = annualRent * years + exploitationFee;
-    return { annualRent, exploitationFee, months, years, total };
+    const total = annualRent * years;
+    return { annualRent, months, years, total };
   })();
 
   useEffect(() => {
@@ -262,7 +261,6 @@ export function TadbirkorNewApplication() {
             {calcResult && (
               <div className="mt-2 space-y-1 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
                 <Row label="Yillik ijara" value={formatSom(calcResult.annualRent)} />
-                <Row label="Ekspluatatsiya to'lovi" value={formatSom(calcResult.exploitationFee)} />
                 <Row label="Muddat" value={`${calcResult.months} oy (${calcResult.years} marta to'lanadi)`} />
                 <hr className="my-1 border-slate-200" />
                 <Row label="Taxminiy jami" value={formatSom(calcResult.total)} bold />
@@ -293,7 +291,6 @@ export function TadbirkorNewApplication() {
             <div className="space-y-1 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
               <p className="mb-1 font-medium text-slate-700">3. Aniq narx (chizilgan maydon bo'yicha)</p>
               <Row label="Yillik ijara" value={formatSom(priceResult.price.annualRent)} />
-              <Row label="Ekspluatatsiya to'lovi" value={formatSom(priceResult.price.exploitationFee)} />
               <Row label="Muddat" value={`${priceResult.price.months} oy (${priceResult.price.years} marta to'lanadi)`} />
               <hr className="my-1 border-slate-200" />
               <Row label="Jami" value={formatSom(priceResult.price.total)} bold />

@@ -154,9 +154,12 @@ async function run() {
   // koeffitsiyentlari — roadmap/qaror/*.pdf dagi 2026-yil yer solig'i qarorlaridan
   // (batafsil izoh surxondaryoZones.js faylida). Aniq GIS chegaralari mavjud
   // bo'lmagani uchun tadbirkor mahallani nomi bo'yicha ro'yxatdan tanlaydi.
+  // Ktuman 6 xonagacha aniqlik bilan hisoblanadi — 2 xonali yaxlitlash Sbaza x Ktuman x
+  // Kzona zanjirida ~0,1% xatolik berib, yakuniy narxni manbadagi (surxondaryoZones.js)
+  // aniq mahalla stavkasidan chetlatgan edi.
   const districtDocs = {};
   for (const d of SURXONDARYO_DISTRICTS) {
-    const coefficient = Math.round((d.baseRate / SURXONDARYO_REFERENCE_BASE_RATE) * 100) / 100;
+    const coefficient = Math.round((d.baseRate / SURXONDARYO_REFERENCE_BASE_RATE) * 1e6) / 1e6;
     districtDocs[d.code] = await District.create({ name: d.name, code: d.code, coefficient });
   }
   const district = districtDocs.TERMIZ_SH;
@@ -179,12 +182,12 @@ async function run() {
   // Sbaza — eng past tumandagi (Ktuman=1.0) yillik bazaviy yer solig'i stavkasi
   // (REFERENCE_BASE_RATE, so'm/m²/yil, jismoniy shaxslar uchun 1 kv.m stavkasidan —
   // surxondaryoZones.js). Ijara yiliga bir marta to'lanadi, shuning uchun Sbaza ham
-  // to'g'ridan-to'g'ri yillik miqdorda olinadi (oylikka bo'linmaydi).
-  const sbaza = Math.round(SURXONDARYO_REFERENCE_BASE_RATE);
+  // to'g'ridan-to'g'ri yillik miqdorda olinadi (oylikka bo'linmaydi). Manbadagi aniqlikni
+  // saqlab qolish uchun yaxlitlanmaydi — Sbaza x Ktuman x Kzona = mahalla stavkasi.
+  const sbaza = SURXONDARYO_REFERENCE_BASE_RATE;
 
   await Tariff.create({
     baseRate: sbaza,
-    exploitationRate: 3000,
     seasonalCoefficient: 1.2,
     penaltyRatePerDay: 0.001,
     penaltyCapPercent: 0.15,

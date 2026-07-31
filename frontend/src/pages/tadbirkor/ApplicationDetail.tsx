@@ -96,8 +96,7 @@ export function TadbirkorApplicationDetail() {
             <CardHeader title="Narx dekompozitsiyasi" />
             <div className="grid grid-cols-2 gap-2 p-4 text-sm sm:grid-cols-3">
               <Info label="Yillik ijara" value={formatSom(application.priceSnapshot.annualRent)} />
-              <Info label="Ekspluatatsiya" value={formatSom(application.priceSnapshot.exploitationFee)} />
-              <Info label="Muddat" value={`${application.priceSnapshot.months} oy`} />
+              <Info label="Muddat" value={`${application.priceSnapshot.months} oy (${application.priceSnapshot.years} marta to'lanadi)`} />
               <Info label="Jami" value={formatSom(application.priceSnapshot.total)} />
             </div>
           </Card>

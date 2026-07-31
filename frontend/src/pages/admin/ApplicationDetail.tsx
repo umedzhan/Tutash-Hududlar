@@ -200,7 +200,7 @@ export function AdminApplicationDetail() {
               <Info label="Kmaqsad" value={String(application.priceSnapshot.breakdown.kmaqsad)} />
               <Info label="Kmavsum" value={String(application.priceSnapshot.breakdown.kmavsum)} />
               <Info label="Yillik ijara" value={formatSom(application.priceSnapshot.annualRent)} />
-              <Info label="Ekspluatatsiya" value={formatSom(application.priceSnapshot.exploitationFee)} />
+              <Info label="Muddat" value={`${application.priceSnapshot.months} oy (${application.priceSnapshot.years} marta to'lanadi)`} />
               <Info label="Jami" value={formatSom(application.priceSnapshot.total)} />
             </div>
           </Card>

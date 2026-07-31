@@ -17,7 +17,6 @@ const contractSchema = new mongoose.Schema(
     areaM2: { type: Number, default: null },
     priceSnapshot: { type: mongoose.Schema.Types.Mixed, default: null },
     rentPayment: { type: Number, required: true },
-    operationalPayment: { type: Number, required: true },
     total: { type: Number, required: true },
     period: {
       from: { type: Date, required: true },

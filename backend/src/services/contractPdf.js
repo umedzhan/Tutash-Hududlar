@@ -150,6 +150,7 @@ export async function generateContractPdf({ contract, region, company, district,
 
   const breakdown = contract.priceSnapshot?.breakdown ?? {};
   const months = contract.priceSnapshot?.months ?? 1;
+  const years = contract.priceSnapshot?.years ?? 1;
   const penaltyPercent = tariff ? (tariff.penaltyRatePerDay * 100).toFixed(2) : '0.10';
   const penaltyCap = tariff ? Math.round(tariff.penaltyCapPercent * 100) : 15;
 
@@ -217,8 +218,7 @@ export async function generateContractPdf({ contract, region, company, district,
     fieldLine(doc, 'Mavsumiy koeffitsiyent (Kmavsum)', breakdown.kmavsum ?? '-');
     doc.moveDown(0.4);
     fieldLine(doc, "Yillik ijara to'lovi", formatSom(contract.rentPayment));
-    fieldLine(doc, "Ekspluatatsiya to'lovi", formatSom(contract.operationalPayment));
-    fieldLine(doc, 'Muddat', `${months} oy`);
+    fieldLine(doc, 'Muddat', `${months} oy (${years} marta to'lanadi)`);
     doc.font('Helvetica-Bold').text(`Jami: ${formatSom(contract.total)}`);
     doc.font('Helvetica');
     doc.moveDown(0.3);

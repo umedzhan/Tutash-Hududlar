@@ -81,7 +81,6 @@ export interface Purpose {
 export interface Tariff {
   _id: string;
   baseRate: number;
-  exploitationRate: number;
   seasonalCoefficient: number;
   penaltyRatePerDay: number;
   penaltyCapPercent: number;
@@ -93,7 +92,6 @@ export interface Tariff {
 
 export interface PriceBreakdown {
   annualRent: number;
-  exploitationFee: number;
   months: number;
   years: number;
   total: number;
@@ -175,7 +173,6 @@ export interface Contract {
   areaM2: number | null;
   priceSnapshot: PriceBreakdown | null;
   rentPayment: number;
-  operationalPayment: number;
   total: number;
   period: { from: string; to: string };
   status: ContractStatus;
