@@ -207,16 +207,16 @@ export async function generateContractPdf({ contract, region, company, district,
     sectionTitle(doc, "3. To'lov shartlari");
     paragraph(
       doc,
-      "Ijara haqi amaldagi tarif asosida quyidagi formula bo'yicha hisoblanadi: Oylik ijara = Sbaza x M x Ktuman x Kzona x Kmaqsad x Kmavsum.",
+      "Ijara haqi amaldagi tarif asosida quyidagi formula bo'yicha hisoblanadi (yiliga bir marta to'lanadi): Yillik ijara = Sbaza x M x Ktuman x Kzona x Kmaqsad x Kmavsum.",
     );
-    fieldLine(doc, 'Baza narx (Sbaza)', `${formatSom(breakdown.sbaza ?? 0)}/m²`);
+    fieldLine(doc, 'Baza narx (Sbaza)', `${formatSom(breakdown.sbaza ?? 0)}/m²/yil`);
     fieldLine(doc, 'Maydon (M)', `${breakdown.m ?? contract.areaM2} m²`);
     fieldLine(doc, 'Tuman koeffitsiyenti (Ktuman)', breakdown.ktuman ?? '-');
     fieldLine(doc, 'Zona koeffitsiyenti (Kzona)', breakdown.kzona ?? '-');
     fieldLine(doc, 'Maqsad koeffitsiyenti (Kmaqsad)', breakdown.kmaqsad ?? '-');
     fieldLine(doc, 'Mavsumiy koeffitsiyent (Kmavsum)', breakdown.kmavsum ?? '-');
     doc.moveDown(0.4);
-    fieldLine(doc, 'Oylik ijara to\'lovi', formatSom(contract.rentPayment));
+    fieldLine(doc, "Yillik ijara to'lovi", formatSom(contract.rentPayment));
     fieldLine(doc, "Ekspluatatsiya to'lovi", formatSom(contract.operationalPayment));
     fieldLine(doc, 'Muddat', `${months} oy`);
     doc.font('Helvetica-Bold').text(`Jami: ${formatSom(contract.total)}`);

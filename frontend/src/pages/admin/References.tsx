@@ -139,7 +139,7 @@ export function AdminReferences() {
           <p className="p-4 text-slate-400">Yuklanmoqda...</p>
         ) : tariff ? (
           <div className="grid grid-cols-2 gap-3 p-4 text-sm sm:grid-cols-4">
-            <TariffField label="Baza narx (Sbaza)" value={formatSom(tariff.baseRate)} />
+            <TariffField label="Baza narx (Sbaza, yillik)" value={formatSom(tariff.baseRate)} />
             <TariffField label="Ekspluatatsiya" value={formatSom(tariff.exploitationRate)} />
             <TariffField label="Mavsumiy koeffitsiyent" value={String(tariff.seasonalCoefficient)} />
             <TariffField label="Penya (kuniga)" value={`${tariff.penaltyRatePerDay}%`} />

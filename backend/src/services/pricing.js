@@ -14,12 +14,16 @@ function monthsBetween(from, to) {
   const start = new Date(from);
   const end = new Date(to);
   const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-  return Math.max(1, months + (end.getDate() >= start.getDate() ? 1 : 0));
+  return Math.max(1, months + (end.getDate() > start.getDate() ? 1 : 0));
 }
 
-// oylik_ijara = Sbaza x M x Ktuman x Kzona x Kmaqsad x Kmavsum
+function yearsBetween(months) {
+  return Math.max(1, Math.ceil(months / 12));
+}
+
+// yillik_ijara = Sbaza x M x Ktuman x Kzona x Kmaqsad x Kmavsum — ijara yiliga bir marta to'lanadi
 // Kzona — tadbirkor tanlagan mahalla (Zone) uchun belgilangan koeffitsiyent
-// (Termiz shahar Xalq deputatlari Kengashining yer solig'i stavkalari qaroriga asosan).
+// (tuman/shahar Xalq deputatlari Kengashining yer solig'i stavkalari qaroriga asosan).
 export async function calculatePrice({ areaM2, districtId, purposeId, zoneId, usageType, dateFrom, dateTo }) {
   const [district, purpose, zone, tariff] = await Promise.all([
     District.findById(districtId),
@@ -37,15 +41,17 @@ export async function calculatePrice({ areaM2, districtId, purposeId, zoneId, us
   const isSeasonal = usageType.toLowerCase().includes('mavsum');
   const kMavsum = isSeasonal ? tariff.seasonalCoefficient : 1.0;
 
-  const monthlyRent = Math.round(tariff.baseRate * areaM2 * district.coefficient * kZona * purpose.coefficient * kMavsum);
+  const annualRent = Math.round(tariff.baseRate * areaM2 * district.coefficient * kZona * purpose.coefficient * kMavsum);
   const months = monthsBetween(dateFrom, dateTo);
+  const years = yearsBetween(months);
   const exploitationFee = Math.round(tariff.exploitationRate * areaM2 * months);
-  const total = monthlyRent * months + exploitationFee;
+  const total = annualRent * years + exploitationFee;
 
   return {
-    monthlyRent,
+    annualRent,
     exploitationFee,
     months,
+    years,
     total,
     breakdown: {
       sbaza: tariff.baseRate,

@@ -7,13 +7,18 @@ import { MapView } from '../../components/MapView';
 import type { DrawnPolygon } from '../../components/DrawControl';
 import { formatSom } from '../../lib/format';
 
-// Backenddagi pricing.js formulasi bilan bir xil: oylik_ijara = Sbaza x M x Ktuman x Kzona x Kmaqsad x Kmavsum
+// Backenddagi pricing.js formulasi bilan bir xil: yillik_ijara = Sbaza x M x Ktuman x Kzona x Kmaqsad x Kmavsum
+// Ijara yiliga bir marta to'lanadi.
 function monthsBetween(from: string, to: string) {
   if (!from || !to) return 0;
   const start = new Date(from);
   const end = new Date(to);
   const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-  return Math.max(1, months + (end.getDate() >= start.getDate() ? 1 : 0));
+  return Math.max(1, months + (end.getDate() > start.getDate() ? 1 : 0));
+}
+
+function yearsBetween(months: number) {
+  return Math.max(1, Math.ceil(months / 12));
 }
 
 export function TadbirkorNewApplication() {
@@ -53,10 +58,11 @@ export function TadbirkorNewApplication() {
     const months = monthsBetween(from, to);
     const isSeasonal = usageType.toLowerCase().includes('mavsum');
     const kMavsum = isSeasonal ? tariff.seasonalCoefficient : 1;
-    const monthlyRent = Math.round(tariff.baseRate * area * district.coefficient * zone.coefficient * purpose.coefficient * kMavsum);
+    const annualRent = Math.round(tariff.baseRate * area * district.coefficient * zone.coefficient * purpose.coefficient * kMavsum);
+    const years = yearsBetween(months);
     const exploitationFee = Math.round(tariff.exploitationRate * area * months);
-    const total = monthlyRent * months + exploitationFee;
-    return { monthlyRent, exploitationFee, months, total };
+    const total = annualRent * years + exploitationFee;
+    return { annualRent, exploitationFee, months, years, total };
   })();
 
   useEffect(() => {
@@ -255,9 +261,9 @@ export function TadbirkorNewApplication() {
             )}
             {calcResult && (
               <div className="mt-2 space-y-1 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
-                <Row label="Oylik ijara" value={formatSom(calcResult.monthlyRent)} />
+                <Row label="Yillik ijara" value={formatSom(calcResult.annualRent)} />
                 <Row label="Ekspluatatsiya to'lovi" value={formatSom(calcResult.exploitationFee)} />
-                <Row label="Muddat" value={`${calcResult.months} oy`} />
+                <Row label="Muddat" value={`${calcResult.months} oy (${calcResult.years} marta to'lanadi)`} />
                 <hr className="my-1 border-slate-200" />
                 <Row label="Taxminiy jami" value={formatSom(calcResult.total)} bold />
               </div>
@@ -286,9 +292,9 @@ export function TadbirkorNewApplication() {
           {priceResult && (
             <div className="space-y-1 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
               <p className="mb-1 font-medium text-slate-700">3. Aniq narx (chizilgan maydon bo'yicha)</p>
-              <Row label="Oylik ijara" value={formatSom(priceResult.price.monthlyRent)} />
+              <Row label="Yillik ijara" value={formatSom(priceResult.price.annualRent)} />
               <Row label="Ekspluatatsiya to'lovi" value={formatSom(priceResult.price.exploitationFee)} />
-              <Row label="Muddat" value={`${priceResult.price.months} oy`} />
+              <Row label="Muddat" value={`${priceResult.price.months} oy (${priceResult.price.years} marta to'lanadi)`} />
               <hr className="my-1 border-slate-200" />
               <Row label="Jami" value={formatSom(priceResult.price.total)} bold />
             </div>

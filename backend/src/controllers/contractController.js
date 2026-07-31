@@ -66,7 +66,7 @@ export async function autoGenerateContract(application, req) {
   }
 
   const contractNumber = await nextContractNumber();
-  const { monthlyRent, exploitationFee, total } = application.priceSnapshot;
+  const { annualRent, exploitationFee, total } = application.priceSnapshot;
 
   const contract = await Contract.create({
     contractNumber,
@@ -79,7 +79,7 @@ export async function autoGenerateContract(application, req) {
     geometry: application.geometry,
     areaM2: application.areaM2,
     priceSnapshot: application.priceSnapshot,
-    rentPayment: monthlyRent,
+    rentPayment: annualRent,
     operationalPayment: exploitationFee,
     total,
     period: application.period,

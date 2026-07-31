@@ -199,7 +199,7 @@ export function AdminApplicationDetail() {
               <Info label="Kzona" value={String(application.priceSnapshot.breakdown.kzona)} />
               <Info label="Kmaqsad" value={String(application.priceSnapshot.breakdown.kmaqsad)} />
               <Info label="Kmavsum" value={String(application.priceSnapshot.breakdown.kmavsum)} />
-              <Info label="Oylik ijara" value={formatSom(application.priceSnapshot.monthlyRent)} />
+              <Info label="Yillik ijara" value={formatSom(application.priceSnapshot.annualRent)} />
               <Info label="Ekspluatatsiya" value={formatSom(application.priceSnapshot.exploitationFee)} />
               <Info label="Jami" value={formatSom(application.priceSnapshot.total)} />
             </div>

@@ -176,13 +176,11 @@ async function run() {
   await Purpose.create({ name: 'Mavsumiy savdo', coefficient: 1.1, seasonalAllowed: true });
   await Purpose.create({ name: 'Reklama konstruksiyasi', coefficient: 1.5, seasonalAllowed: false });
 
-  // Sbaza — eng past tumandagi (Ktuman=1.0) yillik bazaviy yer solig'i stavkasidan
-  // hisoblangan oylik boshlang'ich narx: REFERENCE_BASE_RATE (so'm/m²/yil, jismoniy
-  // shaxslar uchun 1 kv.m stavkasidan — surxondaryoZones.js) / 12 (oy).
-  // Bundan avval bu son (25 000 so'm) haqiqiy ma'lumotga bog'liq bo'lmagan taxminiy qiymat
-  // edi — yillik soliq stavkasidan ~50-70 barobar katta bo'lib, "yillik narxni oylik narx
-  // deb hisoblash" natijasiga olib kelgan edi.
-  const sbaza = Math.round(SURXONDARYO_REFERENCE_BASE_RATE / 12);
+  // Sbaza — eng past tumandagi (Ktuman=1.0) yillik bazaviy yer solig'i stavkasi
+  // (REFERENCE_BASE_RATE, so'm/m²/yil, jismoniy shaxslar uchun 1 kv.m stavkasidan —
+  // surxondaryoZones.js). Ijara yiliga bir marta to'lanadi, shuning uchun Sbaza ham
+  // to'g'ridan-to'g'ri yillik miqdorda olinadi (oylikka bo'linmaydi).
+  const sbaza = Math.round(SURXONDARYO_REFERENCE_BASE_RATE);
 
   await Tariff.create({
     baseRate: sbaza,

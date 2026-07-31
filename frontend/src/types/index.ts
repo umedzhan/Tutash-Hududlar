@@ -92,9 +92,10 @@ export interface Tariff {
 }
 
 export interface PriceBreakdown {
-  monthlyRent: number;
+  annualRent: number;
   exploitationFee: number;
   months: number;
+  years: number;
   total: number;
   breakdown: {
     sbaza: number;
