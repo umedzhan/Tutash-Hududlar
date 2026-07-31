@@ -16,6 +16,7 @@ import monitoringRoutes from './routes/monitoringRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import referenceRoutes from './routes/referenceRoutes.js';
+import registrationRequestRoutes from './routes/registrationRequestRoutes.js';
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api/monitoring', monitoringRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/references', referenceRoutes);
+app.use('/api/registration-requests', registrationRequestRoutes);
 
 app.use((req, res) => res.status(404).json({ message: 'Marshrut topilmadi' }));
 app.use(errorHandler);

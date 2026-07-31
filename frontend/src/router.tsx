@@ -1,5 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Login } from './pages/auth/Login';
+import { Landing } from './pages/public/Landing';
+import { Register } from './pages/public/Register';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './layouts/AdminLayout';
 import { TadbirkorLayout } from './layouts/TadbirkorLayout';
@@ -15,6 +17,7 @@ import { AdminPayments } from './pages/admin/Payments';
 import { AdminReports } from './pages/admin/Reports';
 import { AdminUsers } from './pages/admin/Users';
 import { AdminReferences } from './pages/admin/References';
+import { AdminRegistrationRequests } from './pages/admin/RegistrationRequests';
 import { AdminSettings } from './pages/admin/Settings';
 
 import { TadbirkorDashboard } from './pages/tadbirkor/Dashboard';
@@ -40,8 +43,9 @@ function AdminIndex() {
 }
 
 export const router = createBrowserRouter([
-  { path: '/', element: <Navigate to="/login" replace /> },
+  { path: '/', element: <Landing /> },
   { path: '/login', element: <Login /> },
+  { path: '/royxatdan-otish', element: <Register /> },
   {
     element: <ProtectedRoute roles={['SUPER_ADMIN', 'KADASTR', 'ARXITEKTURA', 'SOLIQ']} />,
     children: [
@@ -58,6 +62,7 @@ export const router = createBrowserRouter([
           { path: 'tolovlar', element: <AdminPayments /> },
           { path: 'hisobotlar', element: <AdminReports /> },
           { path: 'foydalanuvchilar', element: <AdminUsers /> },
+          { path: 'royxatdan-otish-sorovlari', element: <AdminRegistrationRequests /> },
           { path: 'malumotnomalar', element: <AdminReferences /> },
           { path: 'sozlamalar', element: <AdminSettings /> },
         ],
@@ -86,5 +91,5 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  { path: '*', element: <Navigate to="/login" replace /> },
+  { path: '*', element: <Navigate to="/" replace /> },
 ]);

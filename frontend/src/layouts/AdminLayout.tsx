@@ -8,6 +8,7 @@ import {
   CreditCard,
   BarChart3,
   Users,
+  UserPlus,
   BookOpen,
   Settings,
 } from 'lucide-react';
@@ -25,6 +26,7 @@ const fullItems: NavItem[] = [
   { to: '/admin/tolovlar', label: "To'lovlar", icon: CreditCard },
   { to: '/admin/hisobotlar', label: 'Hisobotlar', icon: BarChart3 },
   { to: '/admin/foydalanuvchilar', label: 'Foydalanuvchilar', icon: Users },
+  { to: '/admin/royxatdan-otish-sorovlari', label: "Ro'yxatdan o'tish so'rovlari", icon: UserPlus },
   { to: '/admin/malumotnomalar', label: "Ma'lumotnomalar", icon: BookOpen },
   { to: '/admin/sozlamalar', label: 'Sozlamalar', icon: Settings },
 ];
@@ -41,6 +43,7 @@ const TITLES: Record<string, string> = {
   '/admin/tolovlar': "To'lovlar",
   '/admin/hisobotlar': 'Hisobotlar',
   '/admin/foydalanuvchilar': 'Foydalanuvchilar',
+  '/admin/royxatdan-otish-sorovlari': "Ro'yxatdan o'tish so'rovlari",
   '/admin/malumotnomalar': "Ma'lumotnomalar",
   '/admin/sozlamalar': 'Sozlamalar',
 };
