@@ -10,8 +10,8 @@ export function Topbar({ title }: { title: string }) {
   const unread = notifications?.filter((n) => !n.isRead).length ?? 0;
 
   return (
-    <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
-      <h1 className="text-lg font-semibold text-slate-900">{title}</h1>
+    <header className="flex items-center justify-between border-b border-slate-200/80 bg-white/95 px-6 py-3.5 backdrop-blur">
+      <h1 className="text-lg font-semibold tracking-tight text-slate-900">{title}</h1>
 
       <div className="flex items-center gap-4">
         <div className="hidden items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 sm:flex">
