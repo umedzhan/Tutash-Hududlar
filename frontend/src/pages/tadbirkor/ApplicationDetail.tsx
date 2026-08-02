@@ -10,7 +10,7 @@ import { formatDate, formatSom } from '../../lib/format';
 import type { Region } from '../../types';
 
 function fakeRegion(geometry: { type: 'Polygon'; coordinates: number[][][] }, areaM2: number, id: string): Region {
-  return { _id: id, name: '', address: '', district: '', region: '', geometry, areaM2, status: 'bosh', currentContractId: null };
+  return { _id: id, name: '', address: '', district: '', region: '', districtId: null, zoneId: null, geometry, areaM2, status: 'bosh', currentContractId: null };
 }
 
 export function TadbirkorApplicationDetail() {

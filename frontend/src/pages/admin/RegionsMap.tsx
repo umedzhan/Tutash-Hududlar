@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRegions, useCreateRegion } from '../../api/regions';
+import { useDistricts, useZones } from '../../api/references';
 import { MapView } from '../../components/MapView';
 import type { DrawnPolygon } from '../../components/DrawControl';
 import { Card, CardHeader } from '../../components/Card';
@@ -63,10 +64,13 @@ export function AdminRegionsMap() {
 
 function NewRegionForm({ onDone }: { onDone: () => void }) {
   const { data: existingRegions } = useRegions();
+  const { data: districts } = useDistricts();
   const createRegion = useCreateRegion();
-  const [form, setForm] = useState({ address: '', district: 'Termiz shahri' });
+  const [form, setForm] = useState({ address: '', districtId: '', zoneId: '' });
   const [polygon, setPolygon] = useState<DrawnPolygon | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const { data: zones } = useZones(form.districtId || undefined);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -74,12 +78,19 @@ function NewRegionForm({ onDone }: { onDone: () => void }) {
       setError("Avval xaritada hudud chegarasini chizing (o'ng yuqoridagi ko'pburchak yoki to'rtburchak vositasi)");
       return;
     }
+    if (!form.districtId) {
+      setError('Tuman/shaharni tanlang');
+      return;
+    }
     setError(null);
+    const districtName = districts?.find((d) => d._id === form.districtId)?.name ?? '';
     await createRegion.mutateAsync({
       name: form.address,
       address: form.address,
-      district: form.district,
+      district: districtName,
       region: 'Surxondaryo viloyati',
+      districtId: form.districtId,
+      zoneId: form.zoneId || null,
       areaM2: polygon.areaM2,
       geometry: { type: 'Polygon', coordinates: polygon.coordinates },
       status: 'bosh',
@@ -106,7 +117,7 @@ function NewRegionForm({ onDone }: { onDone: () => void }) {
         />
       </div>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-5">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-6">
         <input
           required
           placeholder="Manzil"
@@ -114,13 +125,27 @@ function NewRegionForm({ onDone }: { onDone: () => void }) {
           onChange={(e) => setForm({ ...form, address: e.target.value })}
           className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
         />
-        <input
+        <select
           required
-          placeholder="Tuman"
-          value={form.district}
-          onChange={(e) => setForm({ ...form, district: e.target.value })}
+          value={form.districtId}
+          onChange={(e) => setForm({ ...form, districtId: e.target.value, zoneId: '' })}
           className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-        />
+        >
+          <option value="">Tuman/shahar</option>
+          {(districts ?? []).map((d) => (
+            <option key={d._id} value={d._id}>{d.name}</option>
+          ))}
+        </select>
+        <select
+          value={form.zoneId}
+          onChange={(e) => setForm({ ...form, zoneId: e.target.value })}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+        >
+          <option value="">Mahalla (ixtiyoriy)</option>
+          {(zones ?? []).map((z) => (
+            <option key={z._id} value={z._id}>{z.name}</option>
+          ))}
+        </select>
         <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
           Maydon: <span className="ml-1 font-medium text-slate-800">{polygon ? `${polygon.areaM2} m²` : '— chizilmagan'}</span>
         </div>
@@ -131,7 +156,7 @@ function NewRegionForm({ onDone }: { onDone: () => void }) {
         >
           Saqlash
         </button>
-        {error && <p className="text-sm text-red-600 sm:col-span-2 lg:col-span-5">{error}</p>}
+        {error && <p className="text-sm text-red-600 sm:col-span-2 lg:col-span-6">{error}</p>}
       </form>
     </Card>
   );

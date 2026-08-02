@@ -50,6 +50,8 @@ export interface Region {
   address: string;
   district: string;
   region: string;
+  districtId: string | null;
+  zoneId: string | null;
   geometry: { type: 'Polygon'; coordinates: number[][][] };
   areaM2: number;
   status: RegionStatus;
@@ -218,12 +220,86 @@ export interface DashboardSummary {
     band: number;
     bosh: number;
     muammoli: number;
+    zaxirada: number;
     bandPercent: number;
     boshPercent: number;
     muammoliPercent: number;
   };
+  applicationStats: {
+    total: number;
+    approved: number;
+    rejected: number;
+    inReview: number;
+  };
   recentApplications: Application[];
   paymentStats: { kutilayotgan: number; undirilgan: number; qarzdorlik: number };
+  expiringSoon30: number;
+}
+
+export interface DashboardFilter {
+  districtId?: string;
+  zoneId?: string;
+}
+
+export interface ApplicationFunnelResult {
+  total: number;
+  statusCounts: Record<ApplicationStatus, number>;
+  avgStageDurationDays: Record<Stage, number | null>;
+}
+
+export interface PaymentTrendPoint {
+  month: string;
+  kutilmoqda: number;
+  to_langan: number;
+  qarzdor: number;
+}
+
+export interface TopDebtor {
+  contractId: string;
+  contractNumber: string;
+  companyName: string;
+  regionAddress: string;
+  debt: number;
+  daysOverdue: number;
+}
+
+export interface PaymentTrendResult {
+  monthlyTrend: PaymentTrendPoint[];
+  topDebtors: TopDebtor[];
+}
+
+export interface ExpiringContract {
+  _id: string;
+  contractNumber: string;
+  company: Company;
+  region: Region | null;
+  district: District | null;
+  zone: Zone | null;
+  periodTo: string;
+  daysLeft: number;
+  group: '30' | '60' | '90';
+  debt: number;
+}
+
+export interface DistrictRankingRow {
+  districtId: string;
+  districtName: string;
+  applicationCount: number;
+  avgDurationDays: number | null;
+}
+
+export interface ZoneRankingRow {
+  zoneId: string;
+  zoneName: string;
+  districtName: string;
+  total: number;
+  band: number;
+  bandPercent: number;
+}
+
+export interface DistrictRankingResult {
+  districts: DistrictRankingRow[];
+  zones: ZoneRankingRow[];
 }
 
 export interface MyDashboardSummary {

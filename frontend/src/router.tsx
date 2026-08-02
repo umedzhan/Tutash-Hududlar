@@ -13,6 +13,7 @@ import { AdminMonitoring } from './pages/admin/Monitoring';
 import { AdminApplications } from './pages/admin/Applications';
 import { AdminApplicationDetail } from './pages/admin/ApplicationDetail';
 import { AdminContracts } from './pages/admin/Contracts';
+import { AdminExpiringContracts } from './pages/admin/ExpiringContracts';
 import { AdminPayments } from './pages/admin/Payments';
 import { AdminReports } from './pages/admin/Reports';
 import { AdminUsers } from './pages/admin/Users';
@@ -59,6 +60,7 @@ export const router = createBrowserRouter([
           { path: 'arizalar', element: <AdminApplications /> },
           { path: 'arizalar/:id', element: <AdminApplicationDetail /> },
           { path: 'shartnomalar', element: <AdminContracts /> },
+          { path: 'muddati-tugayotgan-shartnomalar', element: <AdminExpiringContracts /> },
           { path: 'tolovlar', element: <AdminPayments /> },
           { path: 'hisobotlar', element: <AdminReports /> },
           { path: 'foydalanuvchilar', element: <AdminUsers /> },

@@ -7,6 +7,8 @@ const regionSchema = new mongoose.Schema(
     address: { type: String, required: true, trim: true },
     district: { type: String, required: true, trim: true },
     region: { type: String, default: 'Termiz shahri' },
+    districtId: { type: mongoose.Schema.Types.ObjectId, ref: 'District', default: null },
+    zoneId: { type: mongoose.Schema.Types.ObjectId, ref: 'Zone', default: null },
     geometry: {
       type: { type: String, enum: ['Polygon'], required: true },
       coordinates: { type: [[[Number]]], required: true },

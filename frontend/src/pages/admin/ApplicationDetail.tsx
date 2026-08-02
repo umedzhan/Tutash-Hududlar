@@ -34,6 +34,8 @@ function fakeRegion(geometry: { type: 'Polygon'; coordinates: number[][][] }, ar
     address: '',
     district: '',
     region: '',
+    districtId: null,
+    zoneId: null,
     geometry,
     areaM2,
     status: 'bosh',

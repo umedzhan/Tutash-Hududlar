@@ -55,6 +55,8 @@ export async function autoGenerateContract(application, req) {
       name: application.address,
       address: application.address,
       district: district?.name ?? '',
+      districtId: application.districtId,
+      zoneId: application.zoneId,
       geometry: application.geometry,
       areaM2: application.areaM2,
       status: REGION_STATUS.ZAXIRADA,

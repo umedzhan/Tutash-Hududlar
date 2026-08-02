@@ -11,6 +11,7 @@ import {
   UserPlus,
   BookOpen,
   Settings,
+  CalendarClock,
 } from 'lucide-react';
 import { Sidebar } from '../components/Sidebar';
 import { Topbar } from '../components/Topbar';
@@ -23,6 +24,7 @@ const fullItems: NavItem[] = [
   { to: '/admin/monitoring', label: 'Xatlov natijalari', icon: ScanLine },
   { to: '/admin/arizalar', label: 'Arizalar', icon: FileText },
   { to: '/admin/shartnomalar', label: 'Shartnomalar', icon: FileSignature },
+  { to: '/admin/muddati-tugayotgan-shartnomalar', label: 'Muddati tugayotganlar', icon: CalendarClock },
   { to: '/admin/tolovlar', label: "To'lovlar", icon: CreditCard },
   { to: '/admin/hisobotlar', label: 'Hisobotlar', icon: BarChart3 },
   { to: '/admin/foydalanuvchilar', label: 'Foydalanuvchilar', icon: Users },
@@ -40,6 +42,7 @@ const TITLES: Record<string, string> = {
   '/admin/monitoring': 'Xatlov natijalari',
   '/admin/arizalar': 'Arizalar',
   '/admin/shartnomalar': 'Shartnomalar',
+  '/admin/muddati-tugayotgan-shartnomalar': 'Muddati tugayotgan shartnomalar',
   '/admin/tolovlar': "To'lovlar",
   '/admin/hisobotlar': 'Hisobotlar',
   '/admin/foydalanuvchilar': 'Foydalanuvchilar',

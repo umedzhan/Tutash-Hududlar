@@ -209,18 +209,25 @@ async function run() {
     ...Array(2).fill(REGION_STATUS.MUAMMOLI),
   ];
 
+  // Dashboard'da tuman/mahalla kesimidagi ko'rsatkichlar mazmunli bo'lishi uchun demo
+  // hududlar Termiz shahridagi bir nechta haqiqiy mahallaga taqsimlanadi.
+  const termizZones = zones.filter((z) => String(z.districtId) === String(district._id));
+
   const regions = [];
   for (let i = 0; i < STREET_ADDRESSES.length; i += 1) {
     const offsetLng = (Math.random() - 0.5) * 0.012;
     const offsetLat = (Math.random() - 0.5) * 0.012;
     const size = 0.0004 + Math.random() * 0.0003;
     const areaM2 = Math.round((60 + Math.random() * 180) / 10) * 10;
+    const zone = termizZones[i % termizZones.length];
 
     const region = await Region.create({
       name: `Hudud #${i + 1}`,
       address: STREET_ADDRESSES[i],
       district: district.name,
       region: 'Surxondaryo viloyati',
+      districtId: district._id,
+      zoneId: zone?._id ?? null,
       geometry: squarePolygon(TERMIZ_CENTER.lng + offsetLng, TERMIZ_CENTER.lat + offsetLat, size),
       areaM2,
       status: statusPlan[i],
@@ -231,11 +238,14 @@ async function run() {
   for (let i = 0; i < 2; i += 1) {
     const offsetLng = (Math.random() - 0.5) * 0.012;
     const offsetLat = (Math.random() - 0.5) * 0.012;
+    const zone = termizZones[i % termizZones.length];
     await Region.create({
       name: `Avtoturargoh #${i + 1}`,
       address: `Termiz markaziy bozori yaqinida, turargoh ${i + 1}`,
       district: district.name,
       region: 'Surxondaryo viloyati',
+      districtId: district._id,
+      zoneId: zone?._id ?? null,
       geometry: squarePolygon(TERMIZ_CENTER.lng + offsetLng, TERMIZ_CENTER.lat + offsetLat, 0.0003),
       areaM2: 200,
       status: REGION_STATUS.AVTOTURARGOH,
