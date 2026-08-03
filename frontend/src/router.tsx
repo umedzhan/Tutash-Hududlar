@@ -20,6 +20,8 @@ import { AdminUsers } from './pages/admin/Users';
 import { AdminReferences } from './pages/admin/References';
 import { AdminRegistrationRequests } from './pages/admin/RegistrationRequests';
 import { AdminSettings } from './pages/admin/Settings';
+import { AdminLandControl } from './pages/admin/LandControl';
+import { AdminRestrictedAreas } from './pages/admin/RestrictedAreas';
 
 import { TadbirkorDashboard } from './pages/tadbirkor/Dashboard';
 import { TadbirkorMyRegions } from './pages/tadbirkor/MyRegions';
@@ -66,6 +68,8 @@ export const router = createBrowserRouter([
           { path: 'foydalanuvchilar', element: <AdminUsers /> },
           { path: 'royxatdan-otish-sorovlari', element: <AdminRegistrationRequests /> },
           { path: 'malumotnomalar', element: <AdminReferences /> },
+          { path: 'nazorat', element: <AdminLandControl /> },
+          { path: 'muhofaza-zonalari', element: <AdminRestrictedAreas /> },
           { path: 'sozlamalar', element: <AdminSettings /> },
         ],
       },

@@ -85,6 +85,11 @@ const applicationSchema = new mongoose.Schema(
     status: { type: String, enum: Object.values(APPLICATION_STATUS), default: APPLICATION_STATUS.IN_REVIEW_CADASTRE },
     history: { type: [historyEntrySchema], default: [] },
     attachments: { type: [String], default: [] },
+
+    // Kadastr bosqichida biriktiriladi
+    locationSchemeFile: { type: String, default: null },
+    // Arxitektura bosqichida biriktiriladi
+    designCodeFile: { type: String, default: null },
   },
   { timestamps: true },
 );

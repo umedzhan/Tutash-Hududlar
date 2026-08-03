@@ -197,6 +197,34 @@ export async function geometryConsentController(req, res) {
   res.json(application);
 }
 
+export async function uploadLocationSchemeController(req, res) {
+  const application = await Application.findById(req.params.id);
+  if (!application) {
+    return res.status(404).json({ message: 'Ariza topilmadi' });
+  }
+  if (!req.file) {
+    return res.status(400).json({ message: 'Fayl yuklanmadi' });
+  }
+  application.locationSchemeFile = `/uploads/applications/${req.file.filename}`;
+  await application.save();
+  await logAction({ req, action: 'uploadLocationScheme', entity: 'Application', entityId: application._id });
+  res.json(application);
+}
+
+export async function uploadDesignCodeController(req, res) {
+  const application = await Application.findById(req.params.id);
+  if (!application) {
+    return res.status(404).json({ message: 'Ariza topilmadi' });
+  }
+  if (!req.file) {
+    return res.status(400).json({ message: 'Fayl yuklanmadi' });
+  }
+  application.designCodeFile = `/uploads/applications/${req.file.filename}`;
+  await application.save();
+  await logAction({ req, action: 'uploadDesignCode', entity: 'Application', entityId: application._id });
+  res.json(application);
+}
+
 export async function provideInfoController(req, res) {
   const { comment } = req.body;
   const application = await Application.findById(req.params.id);

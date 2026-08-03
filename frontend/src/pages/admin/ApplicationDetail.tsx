@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useApplication, useDecideStage } from '../../api/applications';
+import { useApplication, useDecideStage, useUploadLocationScheme, useUploadDesignCode } from '../../api/applications';
 import { useContracts } from '../../api/contracts';
 import { Card, CardHeader } from '../../components/Card';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -48,6 +48,8 @@ export function AdminApplicationDetail() {
   const { data: application, isLoading } = useApplication(id);
   const { data: contracts } = useContracts();
   const decideStage = useDecideStage();
+  const uploadLocationScheme = useUploadLocationScheme();
+  const uploadDesignCode = useUploadDesignCode();
   const role = useAuthStore((s) => s.user?.role);
 
   const [editMode, setEditMode] = useState(false);
@@ -163,6 +165,32 @@ export function AdminApplicationDetail() {
               <PhotoThumb label="Janub" src={application.photos.janub} />
               <PhotoThumb label="Sharq" src={application.photos.sharq} />
               <PhotoThumb label="G'arb" src={application.photos.gharb} />
+            </div>
+          </Card>
+        )}
+
+        {(role === 'KADASTR' || role === 'ARXITEKTURA' || role === 'SUPER_ADMIN') && (
+          <Card>
+            <CardHeader title="Qo'shimcha hujjatlar" />
+            <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2">
+              {(role === 'KADASTR' || role === 'SUPER_ADMIN') && (
+                <FileAttachSection
+                  label="Joylashuv sxemasi"
+                  fileUrl={application.locationSchemeFile}
+                  accept=".pdf,.jpg,.jpeg,.png,.dwg,.dxf"
+                  isPending={uploadLocationScheme.isPending}
+                  onUpload={(file) => uploadLocationScheme.mutate({ id: application._id, file })}
+                />
+              )}
+              {(role === 'ARXITEKTURA' || role === 'SUPER_ADMIN') && (
+                <FileAttachSection
+                  label="Dizayn-kod fayli"
+                  fileUrl={application.designCodeFile}
+                  accept=".pdf,.jpg,.jpeg,.png,.dwg,.dxf"
+                  isPending={uploadDesignCode.isPending}
+                  onUpload={(file) => uploadDesignCode.mutate({ id: application._id, file })}
+                />
+              )}
             </div>
           </Card>
         )}
@@ -334,6 +362,42 @@ function Info({ label, value }: { label: string; value: string }) {
     <div>
       <p className="text-xs text-slate-400">{label}</p>
       <p className="text-slate-800">{value}</p>
+    </div>
+  );
+}
+
+function FileAttachSection({
+  label,
+  fileUrl,
+  accept,
+  isPending,
+  onUpload,
+}: {
+  label: string;
+  fileUrl: string | null;
+  accept: string;
+  isPending: boolean;
+  onUpload: (file: File) => void;
+}) {
+  return (
+    <div>
+      <p className="mb-1.5 text-xs text-slate-400">{label}</p>
+      {fileUrl && (
+        <a href={fileUrl} target="_blank" rel="noreferrer" className="mb-2 block text-sm text-brand-light hover:underline">
+          Yuklangan faylni ko'rish
+        </a>
+      )}
+      <input
+        type="file"
+        accept={accept}
+        disabled={isPending}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onUpload(file);
+          e.target.value = '';
+        }}
+        className="block w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:text-slate-600 hover:file:bg-slate-200"
+      />
     </div>
   );
 }

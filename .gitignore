@@ -6,6 +6,8 @@ build/
 backend/uploads/contracts/*.pdf
 backend/uploads/companies/*
 backend/uploads/applications/*
+backend/uploads/inspections/*
+backend/uploads/violations/*
 .DS_Store
 .claude/
 roadmap/

@@ -1,4 +1,12 @@
-import type { ApplicationStatus, ContractStatus, PaymentStatus, RegionStatus, Stage } from '../types';
+import type {
+  ApplicationStatus,
+  ContractStatus,
+  PaymentStatus,
+  RegionStatus,
+  RestrictedAreaType,
+  Stage,
+  ViolationStatus,
+} from '../types';
 
 export const REGION_STATUS_LABEL: Record<RegionStatus, string> = {
   band: 'Band',
@@ -71,4 +79,30 @@ export const PAYMENT_STATUS_BADGE: Record<PaymentStatus, string> = {
   kutilmoqda: 'bg-amber-100 text-amber-700',
   to_langan: 'bg-emerald-100 text-emerald-700',
   qarzdor: 'bg-red-100 text-red-700',
+};
+
+export const VIOLATION_STATUS_LABEL: Record<ViolationStatus, string> = {
+  aniqlangan: 'Aniqlangan',
+  tekshirilmoqda: 'Tekshirilmoqda',
+  bartaraf_etilgan: 'Bartaraf etilgan',
+};
+
+export const VIOLATION_STATUS_BADGE: Record<ViolationStatus, string> = {
+  aniqlangan: 'bg-red-100 text-red-700',
+  tekshirilmoqda: 'bg-amber-100 text-amber-700',
+  bartaraf_etilgan: 'bg-emerald-100 text-emerald-700',
+};
+
+export const RESTRICTED_AREA_TYPE_LABEL: Record<RestrictedAreaType, string> = {
+  red_line: 'Qizil chiziq',
+  road: "Yo'l zonasi",
+  utility: 'Muhandislik tarmoqlari',
+  sanitation: 'Sanitariya-himoya zonasi',
+  ecological: 'Ekologik zona',
+  historical: 'Tarixiy-madaniy zona',
+};
+
+export const INSPECTION_MODULE_LABEL: Record<'kadastr' | 'soliq', string> = {
+  kadastr: 'Kadastr',
+  soliq: 'Soliq',
 };

@@ -15,6 +15,8 @@ import Zone from '../models/Zone.js';
 import Purpose from '../models/Purpose.js';
 import Tariff from '../models/Tariff.js';
 import RestrictedArea from '../models/RestrictedArea.js';
+import InspectionResult from '../models/InspectionResult.js';
+import LandViolation from '../models/LandViolation.js';
 
 import {
   ROLES,
@@ -24,6 +26,7 @@ import {
   PAYMENT_STATUS,
   PAYMENT_TYPE,
   MONITORING_STATUS,
+  VIOLATION_STATUS,
 } from '../constants.js';
 import { validateGeometry } from '../services/geoValidation.js';
 import { calculatePrice } from '../services/pricing.js';
@@ -95,6 +98,8 @@ async function run() {
     Purpose.deleteMany({}),
     Tariff.deleteMany({}),
     RestrictedArea.deleteMany({}),
+    InspectionResult.deleteMany({}),
+    LandViolation.deleteMany({}),
   ]);
 
   console.log('[seed] kompaniya va foydalanuvchilar yaratilmoqda...');
@@ -469,6 +474,54 @@ async function run() {
     byUserId: arxitekturaUser._id,
   });
   await rejectedApp.save();
+
+  console.log('[seed] xatlov natijalari va noqonuniy foydalanish reestri yaratilmoqda...');
+  const inspection1 = await InspectionResult.create({
+    module: 'kadastr',
+    inspectionDate: new Date(Date.now() - 5 * 24 * 3600 * 1000),
+    inspectorId: kadastrUser._id,
+    address: 'Termiz shahri, Bog\'ishamol ko\'chasi yaqinidagi bo\'sh yer',
+    location: { lat: TERMIZ_CENTER.lat + 0.02, lng: TERMIZ_CENTER.lng - 0.01 },
+    areaM2: 340,
+    districtId: district._id,
+    description: 'Dala tekshiruvi natijasida uchastkada ruxsatsiz qurilish belgilari aniqlandi.',
+  });
+  await InspectionResult.create({
+    module: 'soliq',
+    inspectionDate: new Date(Date.now() - 2 * 24 * 3600 * 1000),
+    inspectorId: soliqUser._id,
+    address: 'Termiz shahri, Alisher Navoiy mahallasi hududi',
+    location: { lat: TERMIZ_CENTER.lat - 0.015, lng: TERMIZ_CENTER.lng + 0.02 },
+    areaM2: 120,
+    districtId: district._id,
+    description: 'Soliq organi tekshiruvida shartnomasiz savdo faoliyati aniqlandi.',
+  });
+
+  await LandViolation.create({
+    module: 'kadastr',
+    inspectionId: inspection1._id,
+    address: inspection1.address,
+    location: inspection1.location,
+    areaM2: inspection1.areaM2,
+    districtId: district._id,
+    detectedDate: inspection1.inspectionDate,
+    status: VIOLATION_STATUS.TEKSHIRILMOQDA,
+    description: 'Ruxsatsiz qurilish tufayli holat qo\'shimcha tekshirilmoqda.',
+    inspectorId: kadastrUser._id,
+  });
+  await LandViolation.create({
+    module: 'soliq',
+    address: 'Termiz shahri, Sharq bozori orqa hududi',
+    location: { lat: TERMIZ_CENTER.lat + 0.008, lng: TERMIZ_CENTER.lng + 0.03 },
+    areaM2: 85,
+    districtId: district._id,
+    detectedDate: new Date(Date.now() - 40 * 24 * 3600 * 1000),
+    status: VIOLATION_STATUS.BARTARAF_ETILGAN,
+    description: 'Shartnomasiz egallab olingan savdo maydonchasi.',
+    inspectorId: soliqUser._id,
+    resolutionNote: 'Uchastka bo\'shatildi, tadbirkor rasmiy ariza orqali qonuniy ijaraga o\'tdi.',
+    resolvedAt: new Date(Date.now() - 10 * 24 * 3600 * 1000),
+  });
 
   console.log('[seed] xabarnomalar yaratilmoqda...');
   await Notification.create([

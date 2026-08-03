@@ -77,3 +77,23 @@ export const MONITORING_STATUS = {
   MUVOFIQ: 'qoidaga_muvofiq',
   BUZILGAN: 'buzilgan',
 };
+
+export const INSPECTION_MODULE = {
+  KADASTR: 'kadastr',
+  SOLIQ: 'soliq',
+};
+
+export const VIOLATION_STATUS = {
+  ANIQLANGAN: 'aniqlangan',
+  TEKSHIRILMOQDA: 'tekshirilmoqda',
+  BARTARAF_ETILGAN: 'bartaraf_etilgan',
+};
+
+export const RESTRICTED_AREA_TYPE = {
+  RED_LINE: 'red_line',
+  ROAD: 'road',
+  UTILITY: 'utility',
+  SANITATION: 'sanitation',
+  ECOLOGICAL: 'ecological',
+  HISTORICAL: 'historical',
+};

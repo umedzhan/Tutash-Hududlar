@@ -160,6 +160,8 @@ export interface Application {
   priceSnapshot: PriceBreakdown | null;
   status: ApplicationStatus;
   history: ApplicationHistoryEntry[];
+  locationSchemeFile: string | null;
+  designCodeFile: string | null;
   createdAt: string;
 }
 
@@ -300,6 +302,55 @@ export interface ZoneRankingRow {
 export interface DistrictRankingResult {
   districts: DistrictRankingRow[];
   zones: ZoneRankingRow[];
+}
+
+export type InspectionModule = 'kadastr' | 'soliq';
+export type ViolationStatus = 'aniqlangan' | 'tekshirilmoqda' | 'bartaraf_etilgan';
+export type RestrictedAreaType = 'red_line' | 'road' | 'utility' | 'sanitation' | 'ecological' | 'historical';
+
+export interface GeoPoint {
+  lat: number | null;
+  lng: number | null;
+}
+
+export interface InspectionResult {
+  _id: string;
+  module: InspectionModule;
+  inspectionDate: string;
+  inspectorId: { _id: string; name: string } | string;
+  address: string;
+  location: GeoPoint;
+  areaM2: number | null;
+  districtId: District | string | null;
+  description: string;
+  files: string[];
+  createdAt: string;
+}
+
+export interface LandViolation {
+  _id: string;
+  module: InspectionModule;
+  inspectionId: string | null;
+  address: string;
+  location: GeoPoint;
+  areaM2: number | null;
+  districtId: District | string | null;
+  detectedDate: string;
+  status: ViolationStatus;
+  description: string;
+  files: string[];
+  inspectorId: { _id: string; name: string } | string;
+  resolutionNote: string;
+  resolvedAt: string | null;
+  createdAt: string;
+}
+
+export interface RestrictedArea {
+  _id: string;
+  type: RestrictedAreaType;
+  name: string;
+  geometry: { type: 'Polygon'; coordinates: number[][][] };
+  createdAt: string;
 }
 
 export interface MyDashboardSummary {

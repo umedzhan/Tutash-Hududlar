@@ -47,3 +47,34 @@ export const uploadLandPhotos = multer({
   { name: 'sharq', maxCount: 1 },
   { name: 'gharb', maxCount: 1 },
 ]);
+
+// Joylashuv sxemasi / dizayn-kod fayllari — DWG/DXF brauzerlarda barqaror mimetype
+// yubormaydi, shuning uchun kengaytma bo'yicha tekshiriladi.
+const ALLOWED_SCHEME_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.webp', '.dwg', '.dxf'];
+
+function schemeFilter(req, file, cb) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (!ALLOWED_SCHEME_EXTENSIONS.includes(ext)) {
+    return cb(new Error('Faqat PDF, JPG, PNG, DWG yoki DXF fayllari qabul qilinadi'));
+  }
+  cb(null, true);
+}
+
+export const uploadLocationScheme = multer({
+  storage: makeStorage('applications'),
+  fileFilter: schemeFilter,
+  limits: { fileSize: 15 * 1024 * 1024 },
+}).single('locationScheme');
+
+export const uploadDesignCode = multer({
+  storage: makeStorage('applications'),
+  fileFilter: schemeFilter,
+  limits: { fileSize: 15 * 1024 * 1024 },
+}).single('designCode');
+
+// Xatlov natijasi / noqonuniy foydalanish holati uchun bir nechta fayl (rasm/PDF)
+export const uploadInspectionFiles = multer({
+  storage: makeStorage('inspections'),
+  fileFilter: documentFilter,
+  limits: { fileSize: 8 * 1024 * 1024, files: 5 },
+}).array('files', 5);

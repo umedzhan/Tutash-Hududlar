@@ -132,3 +132,33 @@ export function useProvideInfo() {
     },
   });
 }
+
+export function useUploadLocationScheme() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, file }: { id: string; file: File }) => {
+      const formData = new FormData();
+      formData.append('locationScheme', file);
+      return (await apiClient.patch<Application>(`/applications/${id}/location-scheme`, formData)).data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['applications', data._id] });
+    },
+  });
+}
+
+export function useUploadDesignCode() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, file }: { id: string; file: File }) => {
+      const formData = new FormData();
+      formData.append('designCode', file);
+      return (await apiClient.patch<Application>(`/applications/${id}/design-code`, formData)).data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['applications', data._id] });
+    },
+  });
+}

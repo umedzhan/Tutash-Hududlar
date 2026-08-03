@@ -7,10 +7,12 @@ import {
   decideStageController,
   geometryConsentController,
   provideInfoController,
+  uploadLocationSchemeController,
+  uploadDesignCodeController,
 } from '../controllers/applicationController.js';
 import { authenticate } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
-import { uploadLandPhotos } from '../middleware/upload.js';
+import { uploadLandPhotos, uploadLocationScheme, uploadDesignCode } from '../middleware/upload.js';
 import { ROLES, STAGE_ROLE_MAP } from '../constants.js';
 
 const router = Router();
@@ -32,5 +34,17 @@ router.post('/', requireRole(ROLES.TADBIRKOR), uploadLandPhotos, createApplicati
 router.post('/:id/stages/:stage/decide', requireStageRole, decideStageController);
 router.post('/:id/geometry-consent', requireRole(ROLES.TADBIRKOR), geometryConsentController);
 router.post('/:id/provide-info', requireRole(ROLES.TADBIRKOR), provideInfoController);
+router.patch(
+  '/:id/location-scheme',
+  requireRole(ROLES.KADASTR, ROLES.SUPER_ADMIN),
+  uploadLocationScheme,
+  uploadLocationSchemeController,
+);
+router.patch(
+  '/:id/design-code',
+  requireRole(ROLES.ARXITEKTURA, ROLES.SUPER_ADMIN),
+  uploadDesignCode,
+  uploadDesignCodeController,
+);
 
 export default router;
