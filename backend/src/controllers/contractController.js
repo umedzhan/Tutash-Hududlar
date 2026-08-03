@@ -11,6 +11,18 @@ import * as eimzo from '../services/integrations/eimzo.js';
 import * as soliq from '../services/integrations/soliq.js';
 import { logAction } from '../middleware/auditLogger.js';
 import { ROLES, APPLICATION_STATUS, REGION_STATUS } from '../constants.js';
+import { buildExcelBuffer, sendExcel, exportFilename as excelFilename } from '../services/exportExcel.js';
+import { buildRecordWordBuffer, sendWord, exportFilename as wordFilename } from '../services/exportWord.js';
+
+const CONTRACT_STATUS_LABEL_UZ = {
+  faol: 'Faol',
+  tugagan: 'Tugagan',
+  bekor_qilingan: 'Bekor qilingan',
+};
+
+function formatSom(amount) {
+  return `${Math.round(amount).toLocaleString('ru-RU')} so'm`;
+}
 
 async function nextContractNumber() {
   const count = await Contract.countDocuments();
@@ -27,6 +39,65 @@ export async function listContracts(req, res) {
     .populate('companyId')
     .sort({ createdAt: -1 });
   res.json(contracts);
+}
+
+export async function exportContractsExcel(req, res) {
+  const filter = req.user.role === ROLES.TADBIRKOR ? { companyId: req.user.companyId } : {};
+  const contracts = await Contract.find(filter).populate('hududId').populate('companyId').sort({ createdAt: -1 });
+
+  const buffer = await buildExcelBuffer({
+    sheetName: 'Shartnomalar',
+    columns: [
+      { header: 'Shartnoma №', key: 'num', width: 18 },
+      { header: 'Kompaniya', key: 'company', width: 28 },
+      { header: 'Hudud', key: 'region', width: 30 },
+      { header: 'Jami (so\'m)', key: 'total', width: 18 },
+      { header: 'Davr', key: 'period', width: 26 },
+      { header: 'E-IMZO', key: 'esign', width: 16 },
+      { header: 'Holati', key: 'status', width: 18 },
+    ],
+    rows: contracts.map((c) => ({
+      num: c.contractNumber,
+      company: c.companyId?.name ?? '',
+      region: c.hududId?.address ?? '',
+      total: formatSom(c.total),
+      period: `${c.period.from.toLocaleDateString('uz-UZ')} — ${c.period.to.toLocaleDateString('uz-UZ')}`,
+      esign: c.eSign?.signed ? 'Imzolangan' : 'Kutilmoqda',
+      status: CONTRACT_STATUS_LABEL_UZ[c.status] ?? c.status,
+    })),
+  });
+
+  const filename = excelFilename('soliq', 'shartnomalar', 'xlsx');
+  await logAction({ req, action: 'export', entity: 'Contract', entityId: null, diff: { format: 'xlsx', count: contracts.length } });
+  sendExcel(res, buffer, filename);
+}
+
+export async function exportContractWord(req, res) {
+  const contract = await Contract.findById(req.params.id).populate('hududId').populate('companyId');
+  if (!contract) {
+    return res.status(404).json({ message: 'Shartnoma topilmadi' });
+  }
+
+  const buffer = await buildRecordWordBuffer({
+    title: 'SHARTNOMA KARTOCHKASI',
+    docNumber: contract.contractNumber,
+    date: contract.createdAt.toLocaleDateString('uz-UZ'),
+    fields: [
+      ['Kompaniya', contract.companyId?.name],
+      ['STIR', contract.companyId?.stir],
+      ['Hudud', contract.hududId?.address],
+      ['Maydon', contract.areaM2 ? `${contract.areaM2} m²` : '-'],
+      ['Yillik ijara', contract.priceSnapshot?.annualRent ? formatSom(contract.priceSnapshot.annualRent) : '-'],
+      ['Jami', formatSom(contract.total)],
+      ['Davr', `${contract.period.from.toLocaleDateString('uz-UZ')} — ${contract.period.to.toLocaleDateString('uz-UZ')}`],
+      ['E-IMZO', contract.eSign?.signed ? 'Imzolangan' : 'Kutilmoqda'],
+      ['Holati', CONTRACT_STATUS_LABEL_UZ[contract.status] ?? contract.status],
+    ],
+  });
+
+  const filename = wordFilename('soliq', `shartnoma-${contract.contractNumber.replace(/\//g, '-')}`, 'docx');
+  await logAction({ req, action: 'export', entity: 'Contract', entityId: contract._id, diff: { format: 'docx' } });
+  sendWord(res, buffer, filename);
 }
 
 export async function getContract(req, res) {

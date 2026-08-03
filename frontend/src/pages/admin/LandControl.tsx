@@ -1,6 +1,13 @@
 import { useState } from 'react';
-import { useInspections, useCreateInspection } from '../../api/inspections';
-import { useViolations, useCreateViolation, useUpdateViolationStatus, downloadViolationAct } from '../../api/violations';
+import { useInspections, useCreateInspection, downloadInspectionsExcel } from '../../api/inspections';
+import {
+  useViolations,
+  useCreateViolation,
+  useUpdateViolationStatus,
+  downloadViolationAct,
+  downloadViolationWord,
+  downloadViolationsExcel,
+} from '../../api/violations';
 import { useDistricts } from '../../api/references';
 import { Card, CardHeader } from '../../components/Card';
 import { DataTable } from '../../components/DataTable';
@@ -105,9 +112,17 @@ function InspectionsPanel() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-slate-500">Dala tekshiruvi (xatlov) natijalarini ro'yxatga olish — Kadastr va Soliq</p>
-        <button onClick={() => setShowForm((v) => !v)} className="rounded-lg bg-brand px-3 py-1.5 text-sm text-white hover:bg-brand-light">
-          {showForm ? 'Bekor qilish' : '+ Xatlov natijasi qo\'shish'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => downloadInspectionsExcel(moduleForRole !== 'all' ? { module: moduleForRole } : undefined)}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+          >
+            Excelga yuklash
+          </button>
+          <button onClick={() => setShowForm((v) => !v)} className="rounded-lg bg-brand px-3 py-1.5 text-sm text-white hover:bg-brand-light">
+            {showForm ? 'Bekor qilish' : '+ Xatlov natijasi qo\'shish'}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -272,9 +287,17 @@ function ViolationsPanel() {
             </button>
           ))}
         </div>
-        <button onClick={() => setShowForm((v) => !v)} className="rounded-lg bg-brand px-3 py-1.5 text-sm text-white hover:bg-brand-light">
-          {showForm ? 'Bekor qilish' : '+ Yangi holat qo\'shish'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => downloadViolationsExcel({ status: statusFilter || undefined, module: moduleForRole !== 'all' ? moduleForRole : undefined })}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+          >
+            Excelga yuklash
+          </button>
+          <button onClick={() => setShowForm((v) => !v)} className="rounded-lg bg-brand px-3 py-1.5 text-sm text-white hover:bg-brand-light">
+            {showForm ? 'Bekor qilish' : '+ Yangi holat qo\'shish'}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -384,7 +407,13 @@ function ViolationsPanel() {
                       onClick={() => downloadViolationAct(v._id)}
                       className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
                     >
-                      Dalolatnoma
+                      Dalolatnoma (PDF)
+                    </button>
+                    <button
+                      onClick={() => downloadViolationWord(v._id)}
+                      className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
+                    >
+                      Word
                     </button>
                   </div>
                 ),

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from './client';
+import { downloadFile, excelFilename, wordFilename } from '../lib/download';
 import type { InspectionModule, LandViolation, ViolationStatus } from '../types';
 
 export function useViolations(filter?: { status?: ViolationStatus; module?: InspectionModule }) {
@@ -46,14 +47,14 @@ export function useUpdateViolationStatus() {
   });
 }
 
-export async function downloadViolationAct(id: string) {
-  const response = await apiClient.get(`/violations/${id}/act`, { responseType: 'blob' });
-  const url = window.URL.createObjectURL(new Blob([response.data]));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `dalolatnoma-${id}.pdf`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.URL.revokeObjectURL(url);
+export function downloadViolationAct(id: string) {
+  return downloadFile(`/violations/${id}/act`, `dalolatnoma-${id}.pdf`);
+}
+
+export function downloadViolationWord(id: string) {
+  return downloadFile(`/violations/${id}/export/word`, wordFilename('umumiy', `noqonuniy-foydalanish-${id}`));
+}
+
+export function downloadViolationsExcel(filter?: { status?: ViolationStatus; module?: InspectionModule }) {
+  return downloadFile('/violations/export/excel', excelFilename(filter?.module ?? 'umumiy', 'noqonuniy_foydalanish'), filter);
 }

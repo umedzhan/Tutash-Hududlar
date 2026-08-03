@@ -9,6 +9,8 @@ import {
   provideInfoController,
   uploadLocationSchemeController,
   uploadDesignCodeController,
+  exportApplicationsExcel,
+  exportApplicationWord,
 } from '../controllers/applicationController.js';
 import { authenticate } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
@@ -28,8 +30,10 @@ function requireStageRole(req, res, next) {
 }
 
 router.get('/', listApplications);
+router.get('/export/excel', exportApplicationsExcel);
 router.post('/preview', requireRole(ROLES.TADBIRKOR), previewApplication);
 router.get('/:id', getApplication);
+router.get('/:id/export/word', exportApplicationWord);
 router.post('/', requireRole(ROLES.TADBIRKOR), uploadLandPhotos, createApplication);
 router.post('/:id/stages/:stage/decide', requireStageRole, decideStageController);
 router.post('/:id/geometry-consent', requireRole(ROLES.TADBIRKOR), geometryConsentController);

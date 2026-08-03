@@ -11,6 +11,24 @@ import { calculatePrice } from '../services/pricing.js';
 import { autoGenerateContract } from './contractController.js';
 import { logAction } from '../middleware/auditLogger.js';
 import { ROLES, APPLICATION_STATUS, STAGES, STAGE_ROLE_MAP } from '../constants.js';
+import { buildExcelBuffer, sendExcel, exportFilename as excelFilename } from '../services/exportExcel.js';
+import { buildRecordWordBuffer, sendWord, exportFilename as wordFilename } from '../services/exportWord.js';
+
+const APPLICATION_STATUS_LABEL_UZ = {
+  DRAFT: 'Qoralama',
+  IN_REVIEW_CADASTRE: "Kadastr ko'rib chiqmoqda",
+  IN_REVIEW_ARCHITECTURE: "Arxitektura ko'rib chiqmoqda",
+  IN_REVIEW_TAX: "Soliq ko'rib chiqmoqda",
+  FINAL_APPROVAL: 'Yakuniy tasdiqda',
+  AWAITING_CONSENT: 'Rozilik kutilmoqda',
+  INFO_REQUESTED: "Ma'lumot so'ralgan",
+  APPROVED: 'Tasdiqlangan',
+  CONTRACT_GENERATED: 'Shartnoma tayyor',
+  SIGNED: 'Imzolangan',
+  ACTIVE: 'Faol',
+  REJECTED: 'Rad etilgan',
+  WITHDRAWN: "Qaytarib olingan",
+};
 
 async function nextApplicationNumber() {
   const count = await Application.countDocuments();
@@ -20,14 +38,19 @@ async function nextApplicationNumber() {
   return `ARZ-${yy}${mm}-${String(count + 1).padStart(5, '0')}`;
 }
 
-export async function listApplications(req, res) {
-  let filter = {};
-  if (req.user.role === ROLES.TADBIRKOR) {
-    filter = { applicantId: req.user.id };
-  } else if ([ROLES.KADASTR, ROLES.ARXITEKTURA, ROLES.SOLIQ].includes(req.user.role)) {
-    const stageForRole = STAGES.find((s) => STAGE_ROLE_MAP[s] === req.user.role);
-    filter = { currentStage: stageForRole };
+function applicationFilterForUser(user) {
+  if (user.role === ROLES.TADBIRKOR) {
+    return { applicantId: user.id };
   }
+  if ([ROLES.KADASTR, ROLES.ARXITEKTURA, ROLES.SOLIQ].includes(user.role)) {
+    const stageForRole = STAGES.find((s) => STAGE_ROLE_MAP[s] === user.role);
+    return { currentStage: stageForRole };
+  }
+  return {};
+}
+
+export async function listApplications(req, res) {
+  const filter = applicationFilterForUser(req.user);
   const applications = await Application.find(filter)
     .populate('hududId')
     .populate('companyId')
@@ -37,6 +60,63 @@ export async function listApplications(req, res) {
     .populate('purposeId')
     .sort({ createdAt: -1 });
   res.json(applications);
+}
+
+export async function exportApplicationsExcel(req, res) {
+  const filter = applicationFilterForUser(req.user);
+  const applications = await Application.find(filter).populate('companyId').sort({ createdAt: -1 });
+
+  const buffer = await buildExcelBuffer({
+    sheetName: 'Arizalar',
+    columns: [
+      { header: 'Ariza raqami', key: 'num', width: 20 },
+      { header: 'Kompaniya', key: 'company', width: 28 },
+      { header: 'Manzil', key: 'address', width: 34 },
+      { header: 'Maydon (m²)', key: 'area', width: 14 },
+      { header: 'Holati', key: 'status', width: 24 },
+      { header: 'Sana', key: 'date', width: 14 },
+    ],
+    rows: applications.map((a) => ({
+      num: a.applicationNumber,
+      company: a.companyId?.name ?? '',
+      address: a.address,
+      area: a.areaM2,
+      status: APPLICATION_STATUS_LABEL_UZ[a.status] ?? a.status,
+      date: a.createdAt.toLocaleDateString('uz-UZ'),
+    })),
+  });
+
+  const filename = excelFilename('soliq', 'arizalar', 'xlsx');
+  await logAction({ req, action: 'export', entity: 'Application', entityId: null, diff: { format: 'xlsx', count: applications.length } });
+  sendExcel(res, buffer, filename);
+}
+
+export async function exportApplicationWord(req, res) {
+  const application = await Application.findById(req.params.id).populate('companyId').populate('purposeId');
+  if (!application) {
+    return res.status(404).json({ message: 'Ariza topilmadi' });
+  }
+
+  const buffer = await buildRecordWordBuffer({
+    title: 'ARIZA KARTOCHKASI',
+    docNumber: application.applicationNumber,
+    date: application.createdAt.toLocaleDateString('uz-UZ'),
+    fields: [
+      ['Kompaniya', application.companyId?.name],
+      ['STIR', application.companyId?.stir],
+      ['Manzil / hudud', application.address],
+      ['Maqsad', application.purpose],
+      ['Foydalanish turi', application.usageType],
+      ['Maydon', `${application.areaM2} m²`],
+      ['Davr', `${application.period.from.toLocaleDateString('uz-UZ')} — ${application.period.to.toLocaleDateString('uz-UZ')}`],
+      ['Holati', APPLICATION_STATUS_LABEL_UZ[application.status] ?? application.status],
+      ['Izoh', application.comment || '-'],
+    ],
+  });
+
+  const filename = wordFilename('soliq', `ariza-${application.applicationNumber}`, 'docx');
+  await logAction({ req, action: 'export', entity: 'Application', entityId: application._id, diff: { format: 'docx' } });
+  sendWord(res, buffer, filename);
 }
 
 export async function getApplication(req, res) {

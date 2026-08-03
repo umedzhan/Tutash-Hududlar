@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useApplication, useDecideStage, useUploadLocationScheme, useUploadDesignCode } from '../../api/applications';
+import {
+  useApplication,
+  useDecideStage,
+  useUploadLocationScheme,
+  useUploadDesignCode,
+  downloadApplicationWord,
+} from '../../api/applications';
 import { useContracts } from '../../api/contracts';
 import { Card, CardHeader } from '../../components/Card';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -114,7 +120,17 @@ export function AdminApplicationDetail() {
         <Card>
           <CardHeader
             title={application.applicationNumber}
-            action={<StatusBadge label={APPLICATION_STATUS_LABEL[application.status]} className={APPLICATION_STATUS_BADGE[application.status]} />}
+            action={
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => downloadApplicationWord(application._id, application.applicationNumber)}
+                  className="text-xs text-brand-light hover:underline"
+                >
+                  Wordga yuklash
+                </button>
+                <StatusBadge label={APPLICATION_STATUS_LABEL[application.status]} className={APPLICATION_STATUS_BADGE[application.status]} />
+              </div>
+            }
           />
           <div className="grid grid-cols-1 gap-3 p-4 text-sm sm:grid-cols-2">
             <Info label="Kompaniya" value={company?.name} />

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MapContainer, TileLayer, Polygon, Popup } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
-import { useRestrictedAreas, useCreateRestrictedArea, useDeleteRestrictedArea } from '../../api/restrictedAreas';
+import { useRestrictedAreas, useCreateRestrictedArea, useDeleteRestrictedArea, downloadRestrictedAreasExcel } from '../../api/restrictedAreas';
 import { DrawControl, type DrawnPolygon } from '../../components/DrawControl';
 import { Card, CardHeader } from '../../components/Card';
 import { RESTRICTED_AREA_TYPE_LABEL } from '../../lib/status';
@@ -104,7 +104,17 @@ export function AdminRestrictedAreas() {
       </Card>
 
       <Card>
-        <CardHeader title={`Muhofaza zonalari (${areas?.length ?? 0})`} />
+        <CardHeader
+          title={`Muhofaza zonalari (${areas?.length ?? 0})`}
+          action={
+            <button
+              onClick={() => downloadRestrictedAreasExcel()}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
+            >
+              Excelga yuklash
+            </button>
+          }
+        />
         {isLoading ? (
           <p className="p-4 text-slate-400">Yuklanmoqda...</p>
         ) : (

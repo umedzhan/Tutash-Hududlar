@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from './client';
+import { downloadFile, excelFilename, wordFilename } from '../lib/download';
 import type { Contract } from '../types';
 
 export function useContracts() {
@@ -7,6 +8,14 @@ export function useContracts() {
     queryKey: ['contracts'],
     queryFn: async () => (await apiClient.get<Contract[]>('/contracts')).data,
   });
+}
+
+export function downloadContractsExcel() {
+  return downloadFile('/contracts/export/excel', excelFilename('soliq', 'shartnomalar'));
+}
+
+export function downloadContractWord(id: string, contractNumber: string) {
+  return downloadFile(`/contracts/${id}/export/word`, wordFilename('soliq', `shartnoma-${contractNumber.replace(/\//g, '-')}`));
 }
 
 export function useSignContract() {

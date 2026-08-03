@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from './client';
+import { downloadFile, excelFilename } from '../lib/download';
 import type { InspectionModule, InspectionResult } from '../types';
 
 export function useInspections(filter?: { module?: InspectionModule }) {
@@ -34,4 +35,8 @@ export function useCreateInspection() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['inspections'] }),
   });
+}
+
+export function downloadInspectionsExcel(filter?: { module?: InspectionModule }) {
+  return downloadFile('/inspections/export/excel', excelFilename(filter?.module ?? 'umumiy', 'xatlov_natijalari'), filter);
 }

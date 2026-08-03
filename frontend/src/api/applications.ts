@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from './client';
+import { downloadFile, excelFilename, wordFilename } from '../lib/download';
 import type { Application, PriceBreakdown, Stage } from '../types';
 
 export function useApplications() {
@@ -86,6 +87,14 @@ export function useCreateApplication() {
       queryClient.invalidateQueries({ queryKey: ['regions'] });
     },
   });
+}
+
+export function downloadApplicationsExcel() {
+  return downloadFile('/applications/export/excel', excelFilename('soliq', 'arizalar'));
+}
+
+export function downloadApplicationWord(id: string, applicationNumber: string) {
+  return downloadFile(`/applications/${id}/export/word`, wordFilename('soliq', `ariza-${applicationNumber}`));
 }
 
 export interface DecideStagePayload {

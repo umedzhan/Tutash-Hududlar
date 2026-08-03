@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from './client';
+import { downloadFile, excelFilename } from '../lib/download';
 import type { RestrictedArea, RestrictedAreaType } from '../types';
 
 export function useRestrictedAreas() {
@@ -32,4 +33,8 @@ export function useDeleteRestrictedArea() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['restricted-areas'] }),
   });
+}
+
+export function downloadRestrictedAreasExcel() {
+  return downloadFile('/restricted-areas/export/excel', excelFilename('arxitektura', 'muhofaza_zonalari'));
 }

@@ -1,5 +1,12 @@
 import { Router } from 'express';
-import { listViolations, createViolation, updateViolationStatus, violationAct } from '../controllers/violationController.js';
+import {
+  listViolations,
+  createViolation,
+  updateViolationStatus,
+  violationAct,
+  exportViolationsExcel,
+  exportViolationWord,
+} from '../controllers/violationController.js';
 import { authenticate } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
 import { uploadInspectionFiles } from '../middleware/upload.js';
@@ -14,8 +21,10 @@ const WRITE_ROLES = [ROLES.KADASTR, ROLES.SOLIQ, ROLES.SUPER_ADMIN];
 const READ_ROLES = [...WRITE_ROLES, ROLES.ARXITEKTURA];
 
 router.get('/', requireRole(...READ_ROLES), listViolations);
+router.get('/export/excel', requireRole(...READ_ROLES), exportViolationsExcel);
 router.post('/', requireRole(...WRITE_ROLES), uploadInspectionFiles, createViolation);
 router.patch('/:id/status', requireRole(...WRITE_ROLES), updateViolationStatus);
 router.get('/:id/act', requireRole(...READ_ROLES), violationAct);
+router.get('/:id/export/word', requireRole(...READ_ROLES), exportViolationWord);
 
 export default router;
