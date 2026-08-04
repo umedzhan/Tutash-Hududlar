@@ -113,6 +113,14 @@ function InspectionsPanel() {
       <div className="flex items-center justify-between">
         <p className="text-sm text-slate-500">Dala tekshiruvi (xatlov) natijalarini ro'yxatga olish — Kadastr va Soliq</p>
         <div className="flex items-center gap-2">
+          <a
+            href="/dalolatnoma"
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+          >
+            Rasmiy dalolatnoma blankasi
+          </a>
           <button
             onClick={() => downloadInspectionsExcel(moduleForRole !== 'all' ? { module: moduleForRole } : undefined)}
             className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"

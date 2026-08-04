@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './landing.css';
+import { LandingNav, Logo } from './LandingNav';
 import { HERO_ART_SVG, STEP1_ART_SVG, STEP2_ART_SVG, STEP3_ART_SVG, STEP4_ART_SVG } from './landingArt';
 
 const STATS = [
@@ -105,28 +106,6 @@ const FAQ = [
   },
 ];
 
-function LogoMark() {
-  return (
-    <span className="lp-logo-mark">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </span>
-  );
-}
-
-function Logo() {
-  return (
-    <a className="lp-logo" href="#">
-      <LogoMark />
-      <span>
-        <b>TUTASH HUDUD</b>
-        <small>SURXONDARYO VILOYATI</small>
-      </span>
-    </a>
-  );
-}
-
 export function Landing() {
   const containerRef = useRef<HTMLDivElement>(null);
   const detailsRefs = useRef<(HTMLDetailsElement | null)[]>([]);
@@ -195,20 +174,7 @@ export function Landing() {
 
   return (
     <div className="landing-page" ref={containerRef}>
-      <nav className={`lp-nav${scrolled ? ' scrolled' : ''}`}>
-        <div className="lp-container lp-nav-inner">
-          <Logo />
-          <ul className="lp-nav-links">
-            <li><a href="#jarayon">Jarayon</a></li>
-            <li><a href="#statistika">Statistika</a></li>
-            <li><a href="#savollar">Savollar</a></li>
-            <li><a href="#ariza">Ariza</a></li>
-          </ul>
-          <Link to="/login" className="lp-btn lp-btn-teal" style={{ padding: '11px 22px' }}>
-            Kabinetga kirish
-          </Link>
-        </div>
-      </nav>
+      <LandingNav scrolled={scrolled} />
 
       <header className="lp-hero">
         <div className="lp-container">
@@ -352,6 +318,7 @@ export function Landing() {
               <a href="#jarayon">Jarayon</a>
               <a href="#statistika">Statistika</a>
               <a href="#savollar">Savollar</a>
+              <Link to="/dalolatnoma">Dalolatnoma</Link>
               <Link to="/royxatdan-otish">Ariza topshirish</Link>
             </div>
             <div>

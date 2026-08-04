@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Login } from './pages/auth/Login';
 import { Landing } from './pages/public/Landing';
 import { Register } from './pages/public/Register';
+import { Dalolatnoma } from './pages/public/Dalolatnoma';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './layouts/AdminLayout';
 import { TadbirkorLayout } from './layouts/TadbirkorLayout';
@@ -49,6 +50,7 @@ export const router = createBrowserRouter([
   { path: '/', element: <Landing /> },
   { path: '/login', element: <Login /> },
   { path: '/royxatdan-otish', element: <Register /> },
+  { path: '/dalolatnoma', element: <Dalolatnoma /> },
   {
     element: <ProtectedRoute roles={['SUPER_ADMIN', 'KADASTR', 'ARXITEKTURA', 'SOLIQ']} />,
     children: [
