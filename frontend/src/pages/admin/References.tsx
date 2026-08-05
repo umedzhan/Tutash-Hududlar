@@ -2,16 +2,45 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useCompanies, useCreateCompany } from '../../api/users';
 import { useDistricts, usePurposes, useTariff, useZones } from '../../api/references';
-import { Card, CardHead, TableWrap, Btn, Select } from '../../components/admin/ui';
+import { Card, CardHead, TableWrap, Btn, Select, Seg, SegButton } from '../../components/admin/ui';
 import { formatSom } from '../../lib/format';
 
+type Tab = 'companies' | 'districts' | 'zones' | 'purposes' | 'tariff';
+
+const TABS: { value: Tab; label: string }[] = [
+  { value: 'companies', label: 'Kompaniyalar' },
+  { value: 'districts', label: 'Tumanlar' },
+  { value: 'zones', label: 'Zonalar' },
+  { value: 'purposes', label: 'Maqsadlar' },
+  { value: 'tariff', label: 'Tarif' },
+];
+
 export function AdminReferences() {
+  const [tab, setTab] = useState<Tab>('companies');
+
+  return (
+    <div>
+      <div className="filterbar">
+        <Seg>
+          {TABS.map((t) => (
+            <SegButton key={t.value} active={tab === t.value} onClick={() => setTab(t.value)}>
+              {t.label}
+            </SegButton>
+          ))}
+        </Seg>
+      </div>
+
+      {tab === 'companies' && <CompaniesPanel />}
+      {tab === 'districts' && <DistrictsPanel />}
+      {tab === 'zones' && <ZonesPanel />}
+      {tab === 'purposes' && <PurposesPanel />}
+      {tab === 'tariff' && <TariffPanel />}
+    </div>
+  );
+}
+
+function CompaniesPanel() {
   const { data: companies, isLoading } = useCompanies();
-  const { data: districts, isLoading: districtsLoading } = useDistricts();
-  const [zoneDistrictFilter, setZoneDistrictFilter] = useState('');
-  const { data: zones, isLoading: zonesLoading } = useZones(zoneDistrictFilter || undefined);
-  const { data: purposes, isLoading: purposesLoading } = usePurposes();
-  const { data: tariff, isLoading: tariffLoading } = useTariff();
   const createCompany = useCreateCompany();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', stir: '', director: '', phone: '' });
@@ -24,7 +53,7 @@ export function AdminReferences() {
   }
 
   return (
-    <div>
+    <>
       <div className="filterbar">
         <span style={{ fontSize: 13, color: 'var(--text-2)' }}>Kompaniyalar (tadbirkorlik subyektlari) ma'lumotnomasi</span>
         <div style={{ marginLeft: 'auto' }}>
@@ -50,7 +79,7 @@ export function AdminReferences() {
         </Card>
       )}
 
-      <Card style={{ marginBottom: 16 }}>
+      <Card>
         <CardHead title="Kompaniyalar" subtitle={`Jami ${companies?.length ?? 0} ta`} />
         {isLoading ? (
           <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
@@ -77,117 +106,140 @@ export function AdminReferences() {
           </TableWrap>
         )}
       </Card>
+    </>
+  );
+}
 
-      <Card style={{ marginBottom: 16 }}>
-        <CardHead title="Tumanlar" />
-        {districtsLoading ? (
-          <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
-        ) : (
+function DistrictsPanel() {
+  const { data: districts, isLoading } = useDistricts();
+  return (
+    <Card>
+      <CardHead title="Tumanlar" subtitle={`Jami ${districts?.length ?? 0} ta`} />
+      {isLoading ? (
+        <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
+      ) : (
+        <TableWrap>
+          <thead>
+            <tr>
+              <th>Nomi</th>
+              <th>Kod</th>
+              <th>Ktuman</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(districts ?? []).map((d) => (
+              <tr key={d._id}>
+                <td>{d.name}</td>
+                <td style={{ color: 'var(--text-2)' }}>{d.code}</td>
+                <td>{d.coefficient}</td>
+              </tr>
+            ))}
+          </tbody>
+        </TableWrap>
+      )}
+    </Card>
+  );
+}
+
+function ZonesPanel() {
+  const { data: districts } = useDistricts();
+  const [zoneDistrictFilter, setZoneDistrictFilter] = useState('');
+  const { data: zones, isLoading } = useZones(zoneDistrictFilter || undefined);
+
+  return (
+    <Card>
+      <CardHead
+        title="Zonalar (mahallalar)"
+        subtitle={zones ? `${zones.length} ta` : undefined}
+        action={
+          <Select value={zoneDistrictFilter} onChange={(e) => setZoneDistrictFilter(e.target.value)}>
+            <option value="">Barcha tumanlar</option>
+            {(districts ?? []).map((d) => (
+              <option key={d._id} value={d._id}>
+                {d.name}
+              </option>
+            ))}
+          </Select>
+        }
+      />
+      {isLoading ? (
+        <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
+      ) : (
+        <div style={{ maxHeight: 460, overflowY: 'auto' }}>
           <TableWrap>
             <thead>
               <tr>
-                <th>Nomi</th>
-                <th>Kod</th>
-                <th>Ktuman</th>
+                <th>Mahalla nomi</th>
+                <th>Tuman/shahar</th>
+                <th>Kzona</th>
               </tr>
             </thead>
             <tbody>
-              {(districts ?? []).map((d) => (
-                <tr key={d._id}>
-                  <td>{d.name}</td>
-                  <td style={{ color: 'var(--text-2)' }}>{d.code}</td>
-                  <td>{d.coefficient}</td>
+              {(zones ?? []).map((z) => (
+                <tr key={z._id}>
+                  <td>{z.name}</td>
+                  <td style={{ color: 'var(--text-2)' }}>{districts?.find((d) => d._id === z.districtId)?.name ?? '-'}</td>
+                  <td>{z.coefficient}</td>
                 </tr>
               ))}
             </tbody>
           </TableWrap>
-        )}
-      </Card>
+        </div>
+      )}
+    </Card>
+  );
+}
 
-      <Card style={{ marginBottom: 16 }}>
-        <CardHead
-          title="Zonalar (mahallalar)"
-          subtitle={zones ? `${zones.length} ta` : undefined}
-          action={
-            <Select value={zoneDistrictFilter} onChange={(e) => setZoneDistrictFilter(e.target.value)}>
-              <option value="">Barcha tumanlar</option>
-              {(districts ?? []).map((d) => (
-                <option key={d._id} value={d._id}>
-                  {d.name}
-                </option>
-              ))}
-            </Select>
-          }
-        />
-        {zonesLoading ? (
-          <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
-        ) : (
-          <div style={{ maxHeight: 384, overflowY: 'auto' }}>
-            <TableWrap>
-              <thead>
-                <tr>
-                  <th>Mahalla nomi</th>
-                  <th>Tuman/shahar</th>
-                  <th>Kzona</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(zones ?? []).map((z) => (
-                  <tr key={z._id}>
-                    <td>{z.name}</td>
-                    <td style={{ color: 'var(--text-2)' }}>{districts?.find((d) => d._id === z.districtId)?.name ?? '-'}</td>
-                    <td>{z.coefficient}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </TableWrap>
-          </div>
-        )}
-      </Card>
-
-      <Card style={{ marginBottom: 16 }}>
-        <CardHead title="Maqsadlar" />
-        {purposesLoading ? (
-          <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
-        ) : (
-          <TableWrap>
-            <thead>
-              <tr>
-                <th>Nomi</th>
-                <th>Kmaqsad</th>
-                <th>Mavsumiy ruxsat</th>
+function PurposesPanel() {
+  const { data: purposes, isLoading } = usePurposes();
+  return (
+    <Card>
+      <CardHead title="Maqsadlar" subtitle={`Jami ${purposes?.length ?? 0} ta`} />
+      {isLoading ? (
+        <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
+      ) : (
+        <TableWrap>
+          <thead>
+            <tr>
+              <th>Nomi</th>
+              <th>Kmaqsad</th>
+              <th>Mavsumiy ruxsat</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(purposes ?? []).map((p) => (
+              <tr key={p._id}>
+                <td>{p.name}</td>
+                <td>{p.coefficient}</td>
+                <td style={{ color: 'var(--text-2)' }}>{p.seasonalAllowed ? 'Ha' : "Yo'q"}</td>
               </tr>
-            </thead>
-            <tbody>
-              {(purposes ?? []).map((p) => (
-                <tr key={p._id}>
-                  <td>{p.name}</td>
-                  <td>{p.coefficient}</td>
-                  <td style={{ color: 'var(--text-2)' }}>{p.seasonalAllowed ? 'Ha' : "Yo'q"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </TableWrap>
-        )}
-      </Card>
+            ))}
+          </tbody>
+        </TableWrap>
+      )}
+    </Card>
+  );
+}
 
-      <Card>
-        <CardHead title="Amaldagi tarif" />
-        {tariffLoading ? (
-          <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
-        ) : tariff ? (
-          <div className="kv-grid">
-            <div className="kv"><span>Baza narx (Sbaza, yillik)</span><b>{formatSom(tariff.baseRate)}</b></div>
-            <div className="kv"><span>Mavsumiy koeffitsiyent</span><b>{tariff.seasonalCoefficient}</b></div>
-            <div className="kv"><span>Penya (kuniga)</span><b>{tariff.penaltyRatePerDay}%</b></div>
-            <div className="kv"><span>Penya chegarasi</span><b>{tariff.penaltyCapPercent}%</b></div>
-            <div className="kv"><span>Min maydon</span><b>{tariff.minAreaM2} m²</b></div>
-            <div className="kv"><span>Maks maydon</span><b>{tariff.maxAreaM2} m²</b></div>
-          </div>
-        ) : (
-          <p style={{ padding: 22, color: 'var(--text-3)' }}>Amaldagi tarif topilmadi</p>
-        )}
-      </Card>
-    </div>
+function TariffPanel() {
+  const { data: tariff, isLoading } = useTariff();
+  return (
+    <Card>
+      <CardHead title="Amaldagi tarif" />
+      {isLoading ? (
+        <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
+      ) : tariff ? (
+        <div className="kv-grid">
+          <div className="kv"><span>Baza narx (Sbaza, yillik)</span><b>{formatSom(tariff.baseRate)}</b></div>
+          <div className="kv"><span>Mavsumiy koeffitsiyent</span><b>{tariff.seasonalCoefficient}</b></div>
+          <div className="kv"><span>Penya (kuniga)</span><b>{tariff.penaltyRatePerDay}%</b></div>
+          <div className="kv"><span>Penya chegarasi</span><b>{tariff.penaltyCapPercent}%</b></div>
+          <div className="kv"><span>Min maydon</span><b>{tariff.minAreaM2} m²</b></div>
+          <div className="kv"><span>Maks maydon</span><b>{tariff.maxAreaM2} m²</b></div>
+        </div>
+      ) : (
+        <p style={{ padding: 22, color: 'var(--text-3)' }}>Amaldagi tarif topilmadi</p>
+      )}
+    </Card>
   );
 }

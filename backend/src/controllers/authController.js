@@ -55,3 +55,36 @@ export async function me(req, res) {
     company: user.companyId,
   });
 }
+
+export async function updateMe(req, res) {
+  const { name, phone, currentPassword, newPassword } = req.body;
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    return res.status(404).json({ message: 'Foydalanuvchi topilmadi' });
+  }
+
+  if (phone && phone !== user.phone) {
+    const existing = await User.findOne({ phone, _id: { $ne: user._id } });
+    if (existing) {
+      return res.status(409).json({ message: 'Bu telefon raqam bilan foydalanuvchi mavjud' });
+    }
+    user.phone = phone;
+  }
+  if (name) user.name = name;
+
+  if (newPassword) {
+    if (!currentPassword) {
+      return res.status(400).json({ message: 'Joriy parolni kiriting' });
+    }
+    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isValid) {
+      return res.status(401).json({ message: "Joriy parol noto'g'ri" });
+    }
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+  }
+
+  await user.save();
+  await logAction({ req, action: 'update', entity: 'User', entityId: user._id, diff: { self: true } });
+
+  res.json({ id: user._id, name: user.name, role: user.role, phone: user.phone, companyId: user.companyId });
+}

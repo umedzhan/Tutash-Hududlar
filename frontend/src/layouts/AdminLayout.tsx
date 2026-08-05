@@ -53,8 +53,8 @@ export function AdminLayout() {
   const groups: AdminNavGroup[] = isStaff
     ? [
         {
-          items:
-            role === 'ARXITEKTURA'
+          items: [
+            ...(role === 'ARXITEKTURA'
               ? [
                   { to: '/admin/arizalar', label: 'Ish stolim (arizalar)', icon: FileText },
                   { to: '/admin/muhofaza-zonalari', label: 'Muhofaza zonalari', icon: Shield },
@@ -62,7 +62,9 @@ export function AdminLayout() {
               : [
                   { to: '/admin/arizalar', label: 'Ish stolim (arizalar)', icon: FileText },
                   { to: '/admin/nazorat', label: 'Yer nazorati', icon: AlertTriangle },
-                ],
+                ]),
+            { to: '/admin/sozlamalar', label: 'Profil', icon: Settings },
+          ],
         },
       ]
     : [
