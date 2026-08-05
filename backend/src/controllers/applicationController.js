@@ -153,7 +153,7 @@ const PHOTO_SIDES = ['shimol', 'janub', 'sharq', 'gharb'];
 const PHOTO_SIDE_LABEL = { shimol: 'shimol', janub: 'janub', sharq: 'sharq', gharb: "g'arb" };
 
 export async function createApplication(req, res) {
-  const { districtId, purposeId, zoneId, purpose, usageType, comment } = req.body;
+  const { districtId, purposeId, zoneId, purpose, usageType, comment, cadastreNumber } = req.body;
   const geometry = typeof req.body.geometry === 'string' ? JSON.parse(req.body.geometry) : req.body.geometry;
   const period = typeof req.body.period === 'string' ? JSON.parse(req.body.period) : req.body.period;
 
@@ -191,6 +191,7 @@ export async function createApplication(req, res) {
     usageType,
     period,
     comment,
+    cadastreNumber: cadastreNumber || '',
     address: `${district?.name ?? ''} — tadbirkor tomonidan chizilgan hudud`,
     geometry,
     areaM2,

@@ -33,6 +33,7 @@ export interface Company {
   districtId?: District | string | null;
   zoneId?: Zone | string | null;
   address?: string;
+  cadastreNumber?: string;
   registrationDocument?: string | null;
 }
 
@@ -151,6 +152,7 @@ export interface Application {
   period: { from: string; to: string };
   comment: string;
   address: string;
+  cadastreNumber: string;
   geometry: { type: 'Polygon'; coordinates: number[][][] };
   areaM2: number;
   photos: { shimol: string; janub: string; sharq: string; gharb: string };

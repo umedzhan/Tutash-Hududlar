@@ -15,6 +15,7 @@ export function TadbirkorProfile() {
   const [director, setDirector] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
+  const [cadastreNumber, setCadastreNumber] = useState('');
   const [districtId, setDistrictId] = useState('');
   const [zoneId, setZoneId] = useState('');
   const [phones, setPhones] = useState<string[]>(['']);
@@ -31,6 +32,7 @@ export function TadbirkorProfile() {
     setDirector(company.director);
     setEmail(company.email ?? '');
     setAddress(company.address ?? '');
+    setCadastreNumber(company.cadastreNumber ?? '');
     const district = company.districtId;
     const zone = company.zoneId;
     setDistrictId(district && typeof district === 'object' ? (district as District)._id : (district as string) ?? '');
@@ -66,6 +68,7 @@ export function TadbirkorProfile() {
         director,
         email,
         address,
+        cadastreNumber,
         districtId,
         zoneId,
         phones: cleanedPhones,
@@ -129,6 +132,16 @@ export function TadbirkorProfile() {
         <div className="field">
           <label>Tadbirkorlik xududi manzili</label>
           <input value={address} onChange={(e) => setAddress(e.target.value)} className="as-input" placeholder="Ko'cha, uy raqami..." />
+        </div>
+
+        <div className="field">
+          <label>Kadastr raqami (mavjud bo'lsa)</label>
+          <input
+            value={cadastreNumber}
+            onChange={(e) => setCadastreNumber(e.target.value)}
+            className="as-input"
+            placeholder="Bino/inshoot joylashgan yer uchastkasi kadastr raqami"
+          />
         </div>
 
         <div className="field">

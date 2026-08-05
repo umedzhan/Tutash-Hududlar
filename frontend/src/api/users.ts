@@ -50,6 +50,7 @@ export interface UpdateMyCompanyPayload {
   districtId: string;
   zoneId: string;
   address: string;
+  cadastreNumber?: string;
   registrationDocument?: File | null;
 }
 
@@ -66,6 +67,7 @@ export function useUpdateMyCompany() {
       formData.append('districtId', payload.districtId);
       formData.append('zoneId', payload.zoneId);
       formData.append('address', payload.address);
+      formData.append('cadastreNumber', payload.cadastreNumber ?? '');
       if (payload.registrationDocument) {
         formData.append('registrationDocument', payload.registrationDocument);
       }

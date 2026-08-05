@@ -60,6 +60,7 @@ export interface CreateApplicationPayload {
   usageType: string;
   period: { from: string; to: string };
   comment?: string;
+  cadastreNumber?: string;
   photos: ApplicationPhotos;
 }
 
@@ -76,6 +77,7 @@ export function useCreateApplication() {
       formData.append('usageType', payload.usageType);
       formData.append('period', JSON.stringify(payload.period));
       formData.append('comment', payload.comment ?? '');
+      formData.append('cadastreNumber', payload.cadastreNumber ?? '');
       formData.append('shimol', photos.shimol);
       formData.append('janub', photos.janub);
       formData.append('sharq', photos.sharq);

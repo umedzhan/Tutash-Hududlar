@@ -63,6 +63,7 @@ export function TadbirkorApplicationDetail() {
           <CardHead title={application.applicationNumber} action={<Badge tone={tone}>{APPLICATION_STATUS_LABEL[application.status]}</Badge>} />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" style={{ padding: 22 }}>
             <Info label="Manzil / hudud" value={application.address} />
+            {application.cadastreNumber && <Info label="Kadastr raqami" value={application.cadastreNumber} />}
             <Info label="Maqsad" value={application.purpose} />
             <Info label="Foydalanish turi" value={application.usageType} />
             <Info label="Maydon" value={`${application.areaM2} m²`} />

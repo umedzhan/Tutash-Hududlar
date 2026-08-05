@@ -12,6 +12,7 @@ export interface RegistrationRequestPayload {
   districtId?: string;
   zoneId?: string;
   address?: string;
+  cadastreNumber?: string;
 }
 
 export function useSubmitRegistrationRequest() {
@@ -33,6 +34,7 @@ export interface RegistrationRequest {
   districtId: District | string | null;
   zoneId: Zone | string | null;
   address: string;
+  cadastreNumber: string;
   status: RegistrationRequestStatus;
   rejectionReason: string;
   reviewedBy: { _id: string; name: string } | null;

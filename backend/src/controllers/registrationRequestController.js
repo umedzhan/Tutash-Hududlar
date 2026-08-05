@@ -7,7 +7,7 @@ import { logAction } from '../middleware/auditLogger.js';
 import { ROLES } from '../constants.js';
 
 export async function createRegistrationRequest(req, res) {
-  const { companyName, stir, director, phone, email, password, districtId, zoneId, address } = req.body;
+  const { companyName, stir, director, phone, email, password, districtId, zoneId, address, cadastreNumber } = req.body;
 
   if (!companyName || !stir || !director || !phone || !email || !password) {
     return res.status(400).json({ message: 'Barcha majburiy maydonlarni to\'ldiring' });
@@ -33,6 +33,7 @@ export async function createRegistrationRequest(req, res) {
     districtId: districtId || null,
     zoneId: zoneId || null,
     address,
+    cadastreNumber: cadastreNumber || '',
   });
 
   res.status(201).json({
@@ -75,6 +76,7 @@ export async function approveRegistrationRequest(req, res) {
     districtId: request.districtId,
     zoneId: request.zoneId,
     address: request.address,
+    cadastreNumber: request.cadastreNumber,
   });
 
   const user = await User.create({

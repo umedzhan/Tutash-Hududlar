@@ -17,6 +17,7 @@ const companySchema = new mongoose.Schema(
     districtId: { type: mongoose.Schema.Types.ObjectId, ref: 'District', default: null },
     zoneId: { type: mongoose.Schema.Types.ObjectId, ref: 'Zone', default: null },
     address: { type: String, trim: true, default: '' },
+    cadastreNumber: { type: String, trim: true, default: '' },
     registrationDocument: { type: String, default: null },
   },
   { timestamps: true },

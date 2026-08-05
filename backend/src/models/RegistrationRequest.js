@@ -11,6 +11,7 @@ const registrationRequestSchema = new mongoose.Schema(
     districtId: { type: mongoose.Schema.Types.ObjectId, ref: 'District', default: null },
     zoneId: { type: mongoose.Schema.Types.ObjectId, ref: 'Zone', default: null },
     address: { type: String, default: '' },
+    cadastreNumber: { type: String, trim: true, default: '' },
     status: { type: String, enum: ['kutilmoqda', 'tasdiqlangan', 'rad_etilgan'], default: 'kutilmoqda' },
     rejectionReason: { type: String, default: '' },
     reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },

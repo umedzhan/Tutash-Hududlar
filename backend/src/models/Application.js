@@ -61,6 +61,7 @@ const applicationSchema = new mongoose.Schema(
     },
     comment: { type: String, default: '' },
     address: { type: String, default: '' },
+    cadastreNumber: { type: String, trim: true, default: '' },
 
     geometry: {
       type: { type: String, enum: ['Polygon'], required: true },

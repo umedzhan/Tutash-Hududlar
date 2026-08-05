@@ -87,6 +87,7 @@ export function AdminRegistrationRequests() {
                 <Info label="Hudud" value={typeof r.districtId === 'object' && r.districtId ? r.districtId.name : '-'} />
                 <Info label="Mahalla" value={typeof r.zoneId === 'object' && r.zoneId ? r.zoneId.name : '-'} />
                 <Info label="Manzil" value={r.address || '-'} />
+                <Info label="Kadastr raqami" value={r.cadastreNumber || '-'} />
                 <Info label="Yuborilgan sana" value={formatDate(r.createdAt)} />
                 {r.status === 'rad_etilgan' && r.rejectionReason && <Info label="Rad etish sababi" value={r.rejectionReason} />}
               </div>

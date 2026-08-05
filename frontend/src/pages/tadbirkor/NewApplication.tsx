@@ -37,6 +37,7 @@ export function TadbirkorNewApplication() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [comment, setComment] = useState('');
+  const [cadastreNumber, setCadastreNumber] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [priceResult, setPriceResult] = useState<PreviewApplicationResult | null>(null);
   const [calcAreaM2, setCalcAreaM2] = useState('');
@@ -144,6 +145,7 @@ export function TadbirkorNewApplication() {
         usageType,
         period: { from, to },
         comment,
+        cadastreNumber,
         photos: { shimol: photos.shimol, janub: photos.janub, sharq: photos.sharq, gharb: photos.gharb },
       });
       navigate('/tadbirkor/arizalarim');
@@ -203,6 +205,15 @@ export function TadbirkorNewApplication() {
                 </option>
               ))}
             </Select>
+          </div>
+          <div className="field">
+            <label>Kadastr raqami (mavjud bo'lsa)</label>
+            <input
+              value={cadastreNumber}
+              onChange={(e) => setCadastreNumber(e.target.value)}
+              placeholder="Tutash hudud tegishli bo'lgan yer uchastkasi kadastr raqami"
+              className="as-input"
+            />
           </div>
           <div className="field">
             <label>Maqsad</label>

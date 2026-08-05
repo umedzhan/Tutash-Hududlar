@@ -16,6 +16,7 @@ export function Register() {
   const [districtId, setDistrictId] = useState('');
   const [zoneId, setZoneId] = useState('');
   const [address, setAddress] = useState('');
+  const [cadastreNumber, setCadastreNumber] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const { data: zones } = useZones(districtId || undefined);
@@ -43,6 +44,7 @@ export function Register() {
         districtId: districtId || undefined,
         zoneId: zoneId || undefined,
         address,
+        cadastreNumber: cadastreNumber || undefined,
       });
     } catch (err) {
       const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -120,6 +122,14 @@ export function Register() {
           </div>
           <Field label="Manzil">
             <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Ko'cha, uy raqami..." className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+          </Field>
+          <Field label="Kadastr raqami (mavjud bo'lsa)">
+            <input
+              value={cadastreNumber}
+              onChange={(e) => setCadastreNumber(e.target.value)}
+              placeholder="Bino/inshoot joylashgan yer uchastkasi kadastr raqami"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Parol">

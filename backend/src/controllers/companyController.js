@@ -29,7 +29,7 @@ export async function updateMyCompany(req, res) {
   }
 
   const update = {};
-  for (const key of ['name', 'stir', 'director', 'email', 'address']) {
+  for (const key of ['name', 'stir', 'director', 'email', 'address', 'cadastreNumber']) {
     if (req.body[key] !== undefined) update[key] = req.body[key];
   }
   if (req.body.districtId !== undefined) update.districtId = req.body.districtId || null;

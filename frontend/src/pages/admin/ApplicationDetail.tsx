@@ -134,6 +134,7 @@ export function AdminApplicationDetail() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" style={{ padding: '18px 22px 22px' }}>
             <Info label="Kompaniya" value={company?.name} />
             <Info label="Manzil / hudud" value={application.address} />
+            {application.cadastreNumber && <Info label="Kadastr raqami" value={application.cadastreNumber} />}
             <Info label="Maqsad" value={application.purpose} />
             <Info label="Foydalanish turi" value={application.usageType} />
             <Info label="Maydon" value={`${application.areaM2} m²`} />
