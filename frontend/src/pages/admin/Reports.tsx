@@ -13,7 +13,7 @@ import {
   Legend,
 } from 'recharts';
 import { useApplicationFunnel, useDashboardSummary, useDistrictRanking, usePaymentTrend } from '../../api/reports';
-import { Card, CardHeader } from '../../components/Card';
+import { Card, CardHead, TableWrap } from '../../components/admin/ui';
 import { DistrictZoneFilter, type DistrictZoneFilterValue } from '../../components/DistrictZoneFilter';
 import { APPLICATION_STATUS_LABEL, STAGE_LABEL } from '../../lib/status';
 import { formatSom } from '../../lib/format';
@@ -48,31 +48,33 @@ export function AdminReports() {
     : [];
 
   return (
-    <div className="space-y-4">
-      <DistrictZoneFilter districtId={filter.districtId} zoneId={filter.zoneId} onChange={setFilter} />
+    <div>
+      <div style={{ marginBottom: 16 }}>
+        <DistrictZoneFilter districtId={filter.districtId} zoneId={filter.zoneId} onChange={setFilter} />
+      </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid-2" style={{ gridTemplateColumns: '1.2fr 1fr' }}>
         <Card>
-          <CardHeader title="Arizalar jarayoni (voronka)" />
-          <div className="p-4">
+          <CardHead title="Arizalar jarayoni (voronka)" />
+          <div style={{ padding: '10px 22px 22px' }}>
             {funnelData && funnelData.total > 0 ? (
               <ResponsiveContainer width="100%" height={280}>
                 <FunnelChart>
                   <Tooltip formatter={(value) => `${value} ta`} />
                   <Funnel dataKey="value" data={funnelChartData} isAnimationActive>
-                    <LabelList position="right" dataKey="name" fill="#334155" stroke="none" fontSize={12} />
-                    <LabelList position="left" dataKey="value" fill="#0f2657" stroke="none" fontSize={12} />
+                    <LabelList position="right" dataKey="name" fill="var(--text-2)" stroke="none" fontSize={12} />
+                    <LabelList position="left" dataKey="value" fill="var(--text)" stroke="none" fontSize={12} />
                   </Funnel>
                 </FunnelChart>
               </ResponsiveContainer>
             ) : (
-              <p className="py-10 text-center text-sm text-slate-400">Ma'lumot yo'q</p>
+              <p style={{ padding: '40px 0', textAlign: 'center', fontSize: 13, color: 'var(--text-3)' }}>Ma'lumot yo'q</p>
             )}
             {funnelData && (
-              <div className="mt-3 flex flex-wrap gap-3 border-t border-slate-100 pt-3 text-xs text-slate-500">
+              <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
                 {BRANCH_STATUSES.map((status) => (
-                  <span key={status}>
-                    {APPLICATION_STATUS_LABEL[status]}: <span className="font-medium text-slate-700">{funnelData.statusCounts[status] ?? 0} ta</span>
+                  <span key={status} className="badge" style={{ background: 'var(--surface-2)', color: 'var(--text-2)' }}>
+                    {APPLICATION_STATUS_LABEL[status]}: {funnelData.statusCounts[status] ?? 0} ta
                   </span>
                 ))}
               </div>
@@ -81,14 +83,14 @@ export function AdminReports() {
         </Card>
 
         <Card>
-          <CardHeader title="Bosqichlar bo'yicha o'rtacha ko'rib chiqish muddati" />
-          <div className="space-y-2 p-4">
+          <CardHead title="O'rtacha ko'rib chiqish muddati" subtitle="Bosqichlar kesimida" />
+          <div style={{ padding: '18px 22px 22px' }}>
             {STAGES.map((stage) => {
               const days = funnelData?.avgStageDurationDays[stage];
               return (
-                <div key={stage} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
-                  <span className="text-slate-600">{STAGE_LABEL[stage]}</span>
-                  <span className="font-medium text-slate-800">{days != null ? `${days} kun` : "ma'lumot yo'q"}</span>
+                <div key={stage} className="stage">
+                  <b>{STAGE_LABEL[stage]}</b>
+                  <span>{days != null ? `${days} kun` : "ma'lumot yo'q"}</span>
                 </div>
               );
             })}
@@ -97,139 +99,125 @@ export function AdminReports() {
       </div>
 
       {summary && (
-        <Card>
-          <CardHeader title="Hududlar va to'lovlar bo'yicha umumiy holat" />
-          <div className="space-y-4 p-4 text-sm">
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              <ReportRow label="Jami hududlar" value={`${summary.regionStats.jami} ta`} />
-              <ReportRow label="Band" value={`${summary.regionStats.band} ta (${summary.regionStats.bandPercent}%)`} />
-              <ReportRow label="Bo'sh" value={`${summary.regionStats.bosh} ta (${summary.regionStats.boshPercent}%)`} />
-              <ReportRow label="Muammoli" value={`${summary.regionStats.muammoli} ta (${summary.regionStats.muammoliPercent}%)`} />
-            </div>
-            <hr className="border-slate-100" />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <ReportRow label="Kutilayotgan to'lovlar" value={formatSom(summary.paymentStats.kutilayotgan)} />
-              <ReportRow label="Undirilgan to'lovlar" value={formatSom(summary.paymentStats.undirilgan)} />
-              <ReportRow label="Qarzdorlik" value={formatSom(summary.paymentStats.qarzdorlik)} />
-            </div>
+        <Card style={{ marginBottom: 16 }}>
+          <CardHead title="Hududlar va to'lovlar bo'yicha umumiy holat" subtitle="Joriy davr kesimida" />
+          <div className="kv-grid">
+            <div className="kv"><span>Jami hududlar</span><b>{summary.regionStats.jami} ta</b></div>
+            <div className="kv"><span>Band</span><b>{summary.regionStats.band} ta</b><small style={{ color: 'var(--green)' }}>{summary.regionStats.bandPercent}%</small></div>
+            <div className="kv"><span>Bo'sh</span><b>{summary.regionStats.bosh} ta</b><small style={{ color: 'var(--amber)' }}>{summary.regionStats.boshPercent}%</small></div>
+            <div className="kv"><span>Muammoli</span><b>{summary.regionStats.muammoli} ta</b><small style={{ color: 'var(--red)' }}>{summary.regionStats.muammoliPercent}%</small></div>
+            <div className="kv"><span>Kutilayotgan to'lovlar</span><b>{formatSom(summary.paymentStats.kutilayotgan)}</b></div>
+            <div className="kv"><span>Undirilgan to'lovlar</span><b style={{ color: 'var(--green)' }}>{formatSom(summary.paymentStats.undirilgan)}</b></div>
+            <div className="kv"><span>Qarzdorlik</span><b>{formatSom(summary.paymentStats.qarzdorlik)}</b></div>
           </div>
         </Card>
       )}
 
-      <Card>
-        <CardHeader title="To'lovlar dinamikasi (so'nggi 6 oy)" />
-        <div className="p-4">
+      <Card style={{ marginBottom: 16 }}>
+        <CardHead title="To'lovlar dinamikasi" subtitle="So'nggi 6 oy" />
+        <div style={{ padding: '16px 22px 22px', height: 300 }}>
           {trend && trend.monthlyTrend.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trend.monthlyTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${Math.round(v / 1e6)}mln`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--text-2)' }} />
+                <YAxis tick={{ fontSize: 12, fill: 'var(--text-3)' }} tickFormatter={(v) => `${Math.round(v / 1e6)}mln`} />
                 <Tooltip formatter={(value) => (typeof value === 'number' ? formatSom(value) : String(value))} />
                 <Legend />
-                <Line type="monotone" dataKey="kutilmoqda" name="Kutilayotgan" stroke="#f59e0b" strokeWidth={2} />
-                <Line type="monotone" dataKey="to_langan" name="To'langan" stroke="#16a34a" strokeWidth={2} />
-                <Line type="monotone" dataKey="qarzdor" name="Qarzdorlik" stroke="#dc2626" strokeWidth={2} />
+                <Line type="monotone" dataKey="kutilmoqda" name="Kutilayotgan" stroke="#F59E0B" strokeWidth={2} />
+                <Line type="monotone" dataKey="to_langan" name="To'langan" stroke="#10B981" strokeWidth={2} />
+                <Line type="monotone" dataKey="qarzdor" name="Qarzdorlik" stroke="#EF4444" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <p className="py-10 text-center text-sm text-slate-400">Ma'lumot yo'q</p>
+            <p style={{ padding: '40px 0', textAlign: 'center', fontSize: 13, color: 'var(--text-3)' }}>Ma'lumot yo'q</p>
           )}
         </div>
       </Card>
 
-      <Card>
-        <CardHeader title="TOP-10 qarzdorlar" />
+      <Card style={{ marginBottom: 16 }}>
+        <CardHead title="TOP-10 qarzdorlar" />
         {trend && trend.topDebtors.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 text-left text-xs text-slate-400">
-                  <th className="px-4 py-2 font-normal">Kompaniya</th>
-                  <th className="px-4 py-2 font-normal">Shartnoma</th>
-                  <th className="px-4 py-2 font-normal">Hudud</th>
-                  <th className="px-4 py-2 font-normal">Qarz</th>
-                  <th className="px-4 py-2 font-normal">Kechikish</th>
+          <TableWrap>
+            <thead>
+              <tr>
+                <th>Kompaniya</th>
+                <th>Shartnoma</th>
+                <th>Hudud</th>
+                <th>Qarz</th>
+                <th>Kechikish</th>
+              </tr>
+            </thead>
+            <tbody>
+              {trend.topDebtors.map((d) => (
+                <tr key={d.contractId}>
+                  <td>{d.companyName}</td>
+                  <td style={{ color: 'var(--text-2)' }}>{d.contractNumber}</td>
+                  <td style={{ color: 'var(--text-2)' }}>{d.regionAddress}</td>
+                  <td style={{ fontWeight: 700, color: 'var(--red)' }}>{formatSom(d.debt)}</td>
+                  <td style={{ color: 'var(--text-2)' }}>{d.daysOverdue} kun</td>
                 </tr>
-              </thead>
-              <tbody>
-                {trend.topDebtors.map((d) => (
-                  <tr key={d.contractId} className="border-b border-slate-50">
-                    <td className="px-4 py-2.5 font-medium text-slate-800">{d.companyName}</td>
-                    <td className="px-4 py-2.5 text-slate-600">{d.contractNumber}</td>
-                    <td className="px-4 py-2.5 text-slate-600">{d.regionAddress}</td>
-                    <td className="px-4 py-2.5 font-medium text-red-600">{formatSom(d.debt)}</td>
-                    <td className="px-4 py-2.5 text-slate-600">{d.daysOverdue} kun</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </TableWrap>
         ) : (
-          <p className="p-8 text-center text-sm text-slate-400">Qarzdorlar yo'q</p>
+          <p style={{ padding: 32, textAlign: 'center', fontSize: 13, color: 'var(--text-3)' }}>Qarzdorlar yo'q</p>
         )}
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid-2" style={{ marginBottom: 0 }}>
         <Card>
-          <CardHeader title="Eng faol tumanlar" />
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 text-left text-xs text-slate-400">
-                  <th className="px-4 py-2 font-normal">Tuman/shahar</th>
-                  <th className="px-4 py-2 font-normal">Arizalar</th>
-                  <th className="px-4 py-2 font-normal">O'rtacha muddat</th>
+          <CardHead title="Eng faol tumanlar" />
+          <TableWrap>
+            <thead>
+              <tr>
+                <th>Tuman/shahar</th>
+                <th>Arizalar</th>
+                <th>O'rtacha muddat</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(ranking?.districts ?? []).map((row) => (
+                <tr key={row.districtId}>
+                  <td>{row.districtName}</td>
+                  <td style={{ color: 'var(--text-2)' }}>{row.applicationCount} ta</td>
+                  <td style={{ color: 'var(--text-2)' }}>{row.avgDurationDays != null ? `${row.avgDurationDays} kun` : '-'}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {(ranking?.districts ?? []).map((row) => (
-                  <tr key={row.districtId} className="border-b border-slate-50">
-                    <td className="px-4 py-2.5 font-medium text-slate-800">{row.districtName}</td>
-                    <td className="px-4 py-2.5 text-slate-600">{row.applicationCount} ta</td>
-                    <td className="px-4 py-2.5 text-slate-600">{row.avgDurationDays != null ? `${row.avgDurationDays} kun` : '-'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {(!ranking || ranking.districts.length === 0) && <p className="p-8 text-center text-sm text-slate-400">Ma'lumot yo'q</p>}
-          </div>
+              ))}
+            </tbody>
+          </TableWrap>
+          {(!ranking || ranking.districts.length === 0) && (
+            <p style={{ padding: 32, textAlign: 'center', fontSize: 13, color: 'var(--text-3)' }}>Ma'lumot yo'q</p>
+          )}
         </Card>
 
         <Card>
-          <CardHeader title="Eng band mahallalar" />
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 text-left text-xs text-slate-400">
-                  <th className="px-4 py-2 font-normal">Mahalla</th>
-                  <th className="px-4 py-2 font-normal">Tuman</th>
-                  <th className="px-4 py-2 font-normal">Band foizi</th>
+          <CardHead title="Eng band mahallalar" />
+          <TableWrap>
+            <thead>
+              <tr>
+                <th>Mahalla</th>
+                <th>Tuman</th>
+                <th>Band foizi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(ranking?.zones ?? []).map((row) => (
+                <tr key={row.zoneId}>
+                  <td>{row.zoneName}</td>
+                  <td style={{ color: 'var(--text-2)' }}>{row.districtName}</td>
+                  <td style={{ color: 'var(--text-2)' }}>
+                    {row.band}/{row.total} ({row.bandPercent}%)
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {(ranking?.zones ?? []).map((row) => (
-                  <tr key={row.zoneId} className="border-b border-slate-50">
-                    <td className="px-4 py-2.5 font-medium text-slate-800">{row.zoneName}</td>
-                    <td className="px-4 py-2.5 text-slate-600">{row.districtName}</td>
-                    <td className="px-4 py-2.5 text-slate-600">{row.band}/{row.total} ({row.bandPercent}%)</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {(!ranking || ranking.zones.length === 0) && <p className="p-8 text-center text-sm text-slate-400">Ma'lumot yo'q</p>}
-          </div>
+              ))}
+            </tbody>
+          </TableWrap>
+          {(!ranking || ranking.zones.length === 0) && (
+            <p style={{ padding: 32, textAlign: 'center', fontSize: 13, color: 'var(--text-3)' }}>Ma'lumot yo'q</p>
+          )}
         </Card>
       </div>
-    </div>
-  );
-}
-
-function ReportRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-      <span className="text-slate-500">{label}</span>
-      <span className="font-medium text-slate-800">{value}</span>
     </div>
   );
 }

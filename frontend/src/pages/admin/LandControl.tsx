@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Plus, FileDown, FileText } from 'lucide-react';
 import { useInspections, useCreateInspection, downloadInspectionsExcel } from '../../api/inspections';
 import {
   useViolations,
@@ -9,11 +10,10 @@ import {
   downloadViolationsExcel,
 } from '../../api/violations';
 import { useDistricts } from '../../api/references';
-import { Card, CardHeader } from '../../components/Card';
-import { DataTable } from '../../components/DataTable';
-import { StatusBadge } from '../../components/StatusBadge';
+import { Card, CardHead, TableWrap, Badge, Btn, Select, Seg, SegButton } from '../../components/admin/ui';
 import { formatDate } from '../../lib/format';
-import { VIOLATION_STATUS_LABEL, VIOLATION_STATUS_BADGE, INSPECTION_MODULE_LABEL } from '../../lib/status';
+import { VIOLATION_STATUS_LABEL, INSPECTION_MODULE_LABEL } from '../../lib/status';
+import { VIOLATION_STATUS_TONE } from '../../lib/adminTone';
 import { useAuthStore } from '../../store/authStore';
 import type { District, InspectionModule, LandViolation, ViolationStatus } from '../../types';
 
@@ -30,45 +30,27 @@ export function AdminLandControl() {
   const [tab, setTab] = useState<Tab>('inspections');
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-2 border-b border-slate-200">
-        <TabButton active={tab === 'inspections'} onClick={() => setTab('inspections')} label="Xatlov natijalari" />
-        <TabButton
-          active={tab === 'violations'}
-          onClick={() => setTab('violations')}
-          label="Noqonuniy foydalanish reestri"
-        />
+    <div>
+      <div className="seg" style={{ display: 'inline-flex', marginBottom: 16 }}>
+        <button type="button" className={tab === 'inspections' ? 'on' : ''} onClick={() => setTab('inspections')}>
+          Xatlov natijalari
+        </button>
+        <button type="button" className={tab === 'violations' ? 'on' : ''} onClick={() => setTab('violations')}>
+          Noqonuniy foydalanish reestri
+        </button>
       </div>
       {tab === 'inspections' ? <InspectionsPanel /> : <ViolationsPanel />}
     </div>
   );
 }
 
-function TabButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition ${
-        active ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-700'
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
-
 function ModuleSelect({ value, onChange }: { value: string; onChange: (v: InspectionModule) => void }) {
   return (
-    <select
-      required
-      value={value}
-      onChange={(e) => onChange(e.target.value as InspectionModule)}
-      className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-    >
+    <Select required value={value} onChange={(e) => onChange(e.target.value as InspectionModule)}>
       <option value="">Modulni tanlang</option>
       <option value="kadastr">Kadastr</option>
       <option value="soliq">Soliq</option>
-    </select>
+    </Select>
   );
 }
 
@@ -109,122 +91,119 @@ function InspectionsPanel() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">Dala tekshiruvi (xatlov) natijalarini ro'yxatga olish — Kadastr va Soliq</p>
-        <div className="flex items-center gap-2">
-          <a
-            href="/dalolatnoma"
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
-          >
+    <div>
+      <div className="filterbar">
+        <span style={{ fontSize: 13, color: 'var(--text-2)' }}>
+          Dala tekshiruvi (xatlov) natijalarini ro'yxatga olish — Kadastr va Soliq
+        </span>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
+          <a href="/dalolatnoma" target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ textDecoration: 'none' }}>
+            <FileText size={14} />
             Rasmiy dalolatnoma blankasi
           </a>
-          <button
-            onClick={() => downloadInspectionsExcel(moduleForRole !== 'all' ? { module: moduleForRole } : undefined)}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
-          >
+          <Btn variant="ghost" onClick={() => downloadInspectionsExcel(moduleForRole !== 'all' ? { module: moduleForRole } : undefined)}>
+            <FileDown size={14} />
             Excelga yuklash
-          </button>
-          <button onClick={() => setShowForm((v) => !v)} className="rounded-lg bg-brand px-3 py-1.5 text-sm text-white hover:bg-brand-light">
-            {showForm ? 'Bekor qilish' : '+ Xatlov natijasi qo\'shish'}
-          </button>
+          </Btn>
+          <Btn variant="primary" onClick={() => setShowForm((v) => !v)}>
+            <Plus size={14} />
+            {showForm ? 'Bekor qilish' : "Xatlov natijasi qo'shish"}
+          </Btn>
         </div>
       </div>
 
       {showForm && (
-        <Card>
-          <CardHeader title="Yangi xatlov natijasi" />
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card style={{ marginBottom: 16 }}>
+          <CardHead title="Yangi xatlov natijasi" />
+          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, padding: 22 }}>
             {moduleForRole === 'all' ? (
               <ModuleSelect value={form.module} onChange={(v) => setForm({ ...form, module: v })} />
             ) : (
-              <input disabled value={INSPECTION_MODULE_LABEL[moduleForRole]} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500" />
+              <input disabled value={INSPECTION_MODULE_LABEL[moduleForRole]} className="as-input" style={{ opacity: 0.7 }} />
             )}
             <input
               required
               type="date"
               value={form.inspectionDate}
               onChange={(e) => setForm({ ...form, inspectionDate: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="as-input"
             />
             <input
               required
               placeholder="Manzil"
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+              className="as-input"
+              style={{ gridColumn: 'span 2' }}
             />
-            <select
-              value={form.districtId}
-              onChange={(e) => setForm({ ...form, districtId: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            >
+            <Select value={form.districtId} onChange={(e) => setForm({ ...form, districtId: e.target.value })}>
               <option value="">Tuman/shahar (ixtiyoriy)</option>
               {(districts ?? []).map((d: District) => (
-                <option key={d._id} value={d._id}>{d.name}</option>
+                <option key={d._id} value={d._id}>
+                  {d.name}
+                </option>
               ))}
-            </select>
+            </Select>
             <input
               placeholder="Maydon (m²)"
               type="number"
               value={form.areaM2}
               onChange={(e) => setForm({ ...form, areaM2: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="as-input"
             />
-            <input
-              placeholder="Kenglik (lat)"
-              value={form.lat}
-              onChange={(e) => setForm({ ...form, lat: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            />
-            <input
-              placeholder="Uzunlik (lng)"
-              value={form.lng}
-              onChange={(e) => setForm({ ...form, lng: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            />
+            <input placeholder="Kenglik (lat)" value={form.lat} onChange={(e) => setForm({ ...form, lat: e.target.value })} className="as-input" />
+            <input placeholder="Uzunlik (lng)" value={form.lng} onChange={(e) => setForm({ ...form, lng: e.target.value })} className="as-input" />
             <input
               placeholder="Tavsif"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+              className="as-input"
+              style={{ gridColumn: 'span 2' }}
             />
             <input
               type="file"
               multiple
               accept="image/*,application/pdf"
               onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+              className="as-input"
+              style={{ gridColumn: 'span 2' }}
             />
-            <button
-              type="submit"
-              disabled={createInspection.isPending}
-              className="rounded-lg bg-brand px-3 py-2 text-sm text-white hover:bg-brand-light disabled:opacity-60"
-            >
+            <Btn type="submit" variant="primary" disabled={createInspection.isPending}>
               Saqlash
-            </button>
+            </Btn>
           </form>
         </Card>
       )}
 
       <Card>
+        <CardHead title="Tekshiruvlar jurnali" subtitle={`Jami ${inspections?.length ?? 0} ta yozuv`} />
         {isLoading ? (
-          <p className="p-4 text-slate-400">Yuklanmoqda...</p>
+          <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
         ) : (
-          <DataTable
-            columns={[
-              { header: 'Sana', render: (r) => formatDate(r.inspectionDate) },
-              { header: 'Modul', render: (r) => INSPECTION_MODULE_LABEL[r.module] },
-              { header: 'Manzil', render: (r) => r.address },
-              { header: 'Maydon', render: (r) => (r.areaM2 ? `${r.areaM2} m²` : '-') },
-              { header: 'Tekshiruvchi', render: (r) => (typeof r.inspectorId === 'object' ? r.inspectorId.name : '-') },
-              { header: 'Tavsif', render: (r) => r.description || '—' },
-            ]}
-            rows={inspections ?? []}
-            rowKey={(r) => r._id}
-          />
+          <TableWrap>
+            <thead>
+              <tr>
+                <th>Sana</th>
+                <th>Modul</th>
+                <th>Manzil</th>
+                <th>Maydon</th>
+                <th>Tekshiruvchi</th>
+                <th>Tavsif</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(inspections ?? []).map((r) => (
+                <tr key={r._id}>
+                  <td><span className="mono">{formatDate(r.inspectionDate)}</span></td>
+                  <td>{INSPECTION_MODULE_LABEL[r.module]}</td>
+                  <td>{r.address}</td>
+                  <td>{r.areaM2 ? `${r.areaM2} m²` : '-'}</td>
+                  <td style={{ color: 'var(--text-2)' }}>{typeof r.inspectorId === 'object' ? r.inspectorId.name : '-'}</td>
+                  <td style={{ color: 'var(--text-2)' }}>{r.description || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </TableWrap>
         )}
       </Card>
     </div>
@@ -280,156 +259,138 @@ function ViolationsPanel() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div>
+      <div className="filterbar">
+        <Seg>
           {STATUS_FILTERS.map((s) => (
-            <button
-              key={s || 'all'}
-              onClick={() => setStatusFilter(s)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
-                statusFilter === s ? 'bg-brand text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
+            <SegButton key={s || 'all'} active={statusFilter === s} onClick={() => setStatusFilter(s)}>
               {s ? VIOLATION_STATUS_LABEL[s] : 'Barchasi'}
-            </button>
+            </SegButton>
           ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <button
+        </Seg>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
+          <Btn
+            variant="ghost"
             onClick={() => downloadViolationsExcel({ status: statusFilter || undefined, module: moduleForRole !== 'all' ? moduleForRole : undefined })}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
           >
+            <FileDown size={14} />
             Excelga yuklash
-          </button>
-          <button onClick={() => setShowForm((v) => !v)} className="rounded-lg bg-brand px-3 py-1.5 text-sm text-white hover:bg-brand-light">
-            {showForm ? 'Bekor qilish' : '+ Yangi holat qo\'shish'}
-          </button>
+          </Btn>
+          <Btn variant="primary" onClick={() => setShowForm((v) => !v)}>
+            <Plus size={14} />
+            {showForm ? 'Bekor qilish' : 'Yangi holat qo\'shish'}
+          </Btn>
         </div>
       </div>
 
       {showForm && (
-        <Card>
-          <CardHeader title="Noqonuniy yer foydalanish holatini ro'yxatga olish" />
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card style={{ marginBottom: 16 }}>
+          <CardHead title="Noqonuniy yer foydalanish holatini ro'yxatga olish" />
+          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, padding: 22 }}>
             {moduleForRole === 'all' ? (
               <ModuleSelect value={form.module} onChange={(v) => setForm({ ...form, module: v })} />
             ) : (
-              <input disabled value={INSPECTION_MODULE_LABEL[moduleForRole]} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500" />
+              <input disabled value={INSPECTION_MODULE_LABEL[moduleForRole]} className="as-input" style={{ opacity: 0.7 }} />
             )}
             <input
               required
               type="date"
               value={form.detectedDate}
               onChange={(e) => setForm({ ...form, detectedDate: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="as-input"
             />
             <input
               required
               placeholder="Manzil"
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+              className="as-input"
+              style={{ gridColumn: 'span 2' }}
             />
-            <select
-              value={form.districtId}
-              onChange={(e) => setForm({ ...form, districtId: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            >
+            <Select value={form.districtId} onChange={(e) => setForm({ ...form, districtId: e.target.value })}>
               <option value="">Tuman/shahar (ixtiyoriy)</option>
               {(districts ?? []).map((d: District) => (
-                <option key={d._id} value={d._id}>{d.name}</option>
+                <option key={d._id} value={d._id}>
+                  {d.name}
+                </option>
               ))}
-            </select>
+            </Select>
             <input
               placeholder="Maydon (m²)"
               type="number"
               value={form.areaM2}
               onChange={(e) => setForm({ ...form, areaM2: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="as-input"
             />
-            <input
-              placeholder="Kenglik (lat)"
-              value={form.lat}
-              onChange={(e) => setForm({ ...form, lat: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            />
-            <input
-              placeholder="Uzunlik (lng)"
-              value={form.lng}
-              onChange={(e) => setForm({ ...form, lng: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            />
+            <input placeholder="Kenglik (lat)" value={form.lat} onChange={(e) => setForm({ ...form, lat: e.target.value })} className="as-input" />
+            <input placeholder="Uzunlik (lng)" value={form.lng} onChange={(e) => setForm({ ...form, lng: e.target.value })} className="as-input" />
             <input
               placeholder="Tavsif"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+              className="as-input"
+              style={{ gridColumn: 'span 2' }}
             />
             <input
               type="file"
               multiple
               accept="image/*,application/pdf"
               onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+              className="as-input"
+              style={{ gridColumn: 'span 2' }}
             />
-            <button
-              type="submit"
-              disabled={createViolation.isPending}
-              className="rounded-lg bg-brand px-3 py-2 text-sm text-white hover:bg-brand-light disabled:opacity-60"
-            >
+            <Btn type="submit" variant="primary" disabled={createViolation.isPending}>
               Saqlash
-            </button>
+            </Btn>
           </form>
         </Card>
       )}
 
       <Card>
+        <CardHead title="Noqonuniy foydalanish reestri" subtitle={`Jami ${violations?.length ?? 0} ta yozuv`} />
         {isLoading ? (
-          <p className="p-4 text-slate-400">Yuklanmoqda...</p>
+          <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
         ) : (
-          <DataTable
-            columns={[
-              { header: 'Aniqlangan sana', render: (v) => formatDate(v.detectedDate) },
-              { header: 'Modul', render: (v) => INSPECTION_MODULE_LABEL[v.module] },
-              { header: 'Manzil', render: (v) => v.address },
-              { header: 'Maydon', render: (v) => (v.areaM2 ? `${v.areaM2} m²` : '-') },
-              {
-                header: 'Holati',
-                render: (v) => <StatusBadge label={VIOLATION_STATUS_LABEL[v.status]} className={VIOLATION_STATUS_BADGE[v.status]} />,
-              },
-              {
-                header: 'Amallar',
-                render: (v) => (
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={v.status}
-                      onChange={(e) => handleStatusChange(v, e.target.value as ViolationStatus)}
-                      className="rounded-lg border border-slate-300 px-2 py-1 text-xs"
-                    >
-                      <option value="aniqlangan">Aniqlangan</option>
-                      <option value="tekshirilmoqda">Tekshirilmoqda</option>
-                      <option value="bartaraf_etilgan">Bartaraf etilgan</option>
-                    </select>
-                    <button
-                      onClick={() => downloadViolationAct(v._id)}
-                      className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
-                    >
-                      Dalolatnoma (PDF)
-                    </button>
-                    <button
-                      onClick={() => downloadViolationWord(v._id)}
-                      className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
-                    >
-                      Word
-                    </button>
-                  </div>
-                ),
-              },
-            ]}
-            rows={violations ?? []}
-            rowKey={(v) => v._id}
-          />
+          <TableWrap>
+            <thead>
+              <tr>
+                <th>Aniqlangan sana</th>
+                <th>Modul</th>
+                <th>Manzil</th>
+                <th>Maydon</th>
+                <th>Holati</th>
+                <th>Amallar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(violations ?? []).map((v) => (
+                <tr key={v._id}>
+                  <td><span className="mono">{formatDate(v.detectedDate)}</span></td>
+                  <td>{INSPECTION_MODULE_LABEL[v.module]}</td>
+                  <td>{v.address}</td>
+                  <td>{v.areaM2 ? `${v.areaM2} m²` : '-'}</td>
+                  <td>
+                    <Badge tone={VIOLATION_STATUS_TONE[v.status]}>{VIOLATION_STATUS_LABEL[v.status]}</Badge>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Select value={v.status} onChange={(e) => handleStatusChange(v, e.target.value as ViolationStatus)} style={{ padding: '6px 28px 6px 10px', fontSize: 11.5 }}>
+                        <option value="aniqlangan">Aniqlangan</option>
+                        <option value="tekshirilmoqda">Tekshirilmoqda</option>
+                        <option value="bartaraf_etilgan">Bartaraf etilgan</option>
+                      </Select>
+                      <Btn variant="ghost" style={{ padding: '6px 10px', fontSize: 11.5 }} onClick={() => downloadViolationAct(v._id)}>
+                        Dalolatnoma (PDF)
+                      </Btn>
+                      <Btn variant="ghost" style={{ padding: '6px 10px', fontSize: 11.5 }} onClick={() => downloadViolationWord(v._id)}>
+                        Word
+                      </Btn>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </TableWrap>
         )}
       </Card>
     </div>

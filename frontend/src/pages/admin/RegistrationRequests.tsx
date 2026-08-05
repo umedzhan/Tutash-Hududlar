@@ -5,9 +5,9 @@ import {
   useRejectRegistrationRequest,
   type RegistrationRequestStatus,
 } from '../../api/registration';
-import { Card, CardHeader } from '../../components/Card';
-import { StatusBadge } from '../../components/StatusBadge';
+import { Card, CardHead, Badge, Select } from '../../components/admin/ui';
 import { formatDate } from '../../lib/format';
+import type { Tone } from '../../lib/adminTone';
 
 const STATUS_LABEL: Record<RegistrationRequestStatus, string> = {
   kutilmoqda: 'Kutilmoqda',
@@ -15,10 +15,10 @@ const STATUS_LABEL: Record<RegistrationRequestStatus, string> = {
   rad_etilgan: 'Rad etilgan',
 };
 
-const STATUS_BADGE: Record<RegistrationRequestStatus, string> = {
-  kutilmoqda: 'bg-amber-100 text-amber-700',
-  tasdiqlangan: 'bg-emerald-100 text-emerald-700',
-  rad_etilgan: 'bg-red-100 text-red-700',
+const STATUS_TONE: Record<RegistrationRequestStatus, Tone> = {
+  kutilmoqda: 'amber',
+  tasdiqlangan: 'green',
+  rad_etilgan: 'red',
 };
 
 export function AdminRegistrationRequests() {
@@ -53,38 +53,33 @@ export function AdminRegistrationRequests() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-slate-600">Ro'yxatdan o'tish so'rovlari</h2>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as RegistrationRequestStatus | '')}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
-        >
-          <option value="">Barchasi</option>
-          <option value="kutilmoqda">Kutilmoqda</option>
-          <option value="tasdiqlangan">Tasdiqlangan</option>
-          <option value="rad_etilgan">Rad etilgan</option>
-        </select>
+    <div>
+      <div className="filterbar">
+        <span style={{ fontSize: 13, color: 'var(--text-2)' }}>Tadbirkorlarning platformaga kirish so'rovlari</span>
+        <div style={{ marginLeft: 'auto' }}>
+          <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as RegistrationRequestStatus | '')}>
+            <option value="">Barchasi</option>
+            <option value="kutilmoqda">Kutilmoqda</option>
+            <option value="tasdiqlangan">Tasdiqlangan</option>
+            <option value="rad_etilgan">Rad etilgan</option>
+          </Select>
+        </div>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p style={{ marginBottom: 12, fontSize: 13, color: 'var(--red)' }}>{error}</p>}
 
       {isLoading ? (
-        <p className="text-slate-400">Yuklanmoqda...</p>
+        <p style={{ color: 'var(--text-3)' }}>Yuklanmoqda...</p>
       ) : (requests ?? []).length === 0 ? (
         <Card>
-          <p className="p-8 text-center text-sm text-slate-400">So'rovlar topilmadi</p>
+          <p style={{ padding: 32, textAlign: 'center', fontSize: 13, color: 'var(--text-3)' }}>So'rovlar topilmadi</p>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {(requests ?? []).map((r) => (
             <Card key={r._id}>
-              <CardHeader
-                title={r.companyName}
-                action={<StatusBadge label={STATUS_LABEL[r.status]} className={STATUS_BADGE[r.status]} />}
-              />
-              <div className="grid grid-cols-1 gap-3 p-4 text-sm sm:grid-cols-3">
+              <CardHead title={r.companyName} action={<Badge tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Badge>} />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3" style={{ padding: 22 }}>
                 <Info label="STIR" value={r.stir} />
                 <Info label="Rahbar" value={r.director} />
                 <Info label="Telefon" value={r.phone} />
@@ -97,46 +92,39 @@ export function AdminRegistrationRequests() {
               </div>
 
               {r.status === 'kutilmoqda' && (
-                <div className="border-t border-slate-100 p-4">
+                <div style={{ borderTop: '1px solid var(--border)', padding: 22 }}>
                   {rejectingId === r._id ? (
-                    <div className="space-y-2">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <textarea
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
                         placeholder="Rad etish sababi..."
                         rows={2}
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        className="as-input"
                       />
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleReject(r._id)}
-                          disabled={reject.isPending}
-                          className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-60"
-                        >
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button type="button" className="btn btn-no" disabled={reject.isPending} onClick={() => handleReject(r._id)}>
                           Rad etishni tasdiqlash
                         </button>
                         <button
-                          onClick={() => { setRejectingId(null); setReason(''); }}
-                          className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                          type="button"
+                          className="btn btn-ghost"
+                          onClick={() => {
+                            setRejectingId(null);
+                            setReason('');
+                          }}
                         >
                           Bekor qilish
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleApprove(r._id)}
-                        disabled={approve.isPending}
-                        className="rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700 disabled:opacity-60"
-                      >
-                        Tasdiqlash
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="button" className="btn btn-ok" disabled={approve.isPending} onClick={() => handleApprove(r._id)}>
+                        ✓ Tasdiqlash
                       </button>
-                      <button
-                        onClick={() => setRejectingId(r._id)}
-                        className="rounded-lg border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        Rad etish
+                      <button type="button" className="btn btn-no" onClick={() => setRejectingId(r._id)}>
+                        ✕ Rad etish
                       </button>
                     </div>
                   )}
@@ -153,8 +141,8 @@ export function AdminRegistrationRequests() {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs text-slate-400">{label}</p>
-      <p className="text-slate-800">{value}</p>
+      <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{label}</p>
+      <p style={{ fontSize: 13, color: 'var(--text)' }}>{value}</p>
     </div>
   );
 }

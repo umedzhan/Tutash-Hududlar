@@ -1,9 +1,8 @@
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { useMonitoring, useCreateMonitoring } from '../../api/monitoring';
 import { useContracts } from '../../api/contracts';
-import { Card, CardHeader } from '../../components/Card';
-import { DataTable } from '../../components/DataTable';
-import { StatusBadge } from '../../components/StatusBadge';
+import { Card, CardHead, TableWrap, Badge, Btn, Select } from '../../components/admin/ui';
 import { formatDate } from '../../lib/format';
 import type { Region } from '../../types';
 
@@ -33,24 +32,22 @@ export function AdminMonitoring() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">Faol shartnomali hududlarni davriy tekshiruv natijalari</p>
-        <button onClick={() => setShowForm((v) => !v)} className="rounded-lg bg-brand px-3 py-1.5 text-sm text-white hover:bg-brand-light">
-          {showForm ? 'Bekor qilish' : '+ Xatlov natijasi qo\'shish'}
-        </button>
+    <div>
+      <div className="filterbar">
+        <span style={{ fontSize: 13, color: 'var(--text-2)' }}>Faol shartnomali hududlarni davriy tekshiruv natijalari</span>
+        <div style={{ marginLeft: 'auto' }}>
+          <Btn variant="primary" onClick={() => setShowForm((v) => !v)}>
+            <Plus size={14} />
+            {showForm ? 'Bekor qilish' : "Xatlov natijasi qo'shish"}
+          </Btn>
+        </div>
       </div>
 
       {showForm && (
-        <Card>
-          <CardHeader title="Yangi xatlov natijasi" />
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-4">
-            <select
-              required
-              value={form.contractId}
-              onChange={(e) => setForm({ ...form, contractId: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
-            >
+        <Card style={{ marginBottom: 16 }}>
+          <CardHead title="Yangi xatlov natijasi" />
+          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, padding: 22 }}>
+            <Select required value={form.contractId} onChange={(e) => setForm({ ...form, contractId: e.target.value })} style={{ gridColumn: 'span 2' }}>
               <option value="">Shartnomani tanlang...</option>
               {faolContracts.map((c) => {
                 const hudud = c.hududId as Region;
@@ -60,51 +57,55 @@ export function AdminMonitoring() {
                   </option>
                 );
               })}
-            </select>
-            <select
-              value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            >
+            </Select>
+            <Select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
               <option value="qoidaga_muvofiq">Qoidaga muvofiq</option>
               <option value="buzilgan">Buzilgan</option>
-            </select>
+            </Select>
             <input
               placeholder="Izoh"
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="as-input"
             />
-            <button type="submit" className="rounded-lg bg-brand px-3 py-2 text-sm text-white hover:bg-brand-light">
+            <Btn type="submit" variant="primary">
               Saqlash
-            </button>
+            </Btn>
           </form>
         </Card>
       )}
 
       <Card>
+        <CardHead title="Xatlov natijalari" subtitle={`Jami ${records?.length ?? 0} ta yozuv`} />
         {isLoading ? (
-          <p className="p-4 text-slate-400">Yuklanmoqda...</p>
+          <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
         ) : (
-          <DataTable
-            columns={[
-              { header: 'Hudud', render: (r) => (r.hududId as Region)?.address },
-              { header: 'Tekshiruv sanasi', render: (r) => formatDate(r.inspectionDate) },
-              {
-                header: 'Holati',
-                render: (r) => (
-                  <StatusBadge
-                    label={r.status === 'qoidaga_muvofiq' ? 'Qoidaga muvofiq' : 'Buzilgan'}
-                    className={r.status === 'qoidaga_muvofiq' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}
-                  />
-                ),
-              },
-              { header: 'Tekshiruvchi', render: (r) => (r.inspectorId as { name: string })?.name },
-              { header: 'Izoh', render: (r) => r.notes || '—' },
-            ]}
-            rows={records ?? []}
-            rowKey={(r) => r._id}
-          />
+          <TableWrap>
+            <thead>
+              <tr>
+                <th>Hudud</th>
+                <th>Tekshiruv sanasi</th>
+                <th>Holati</th>
+                <th>Tekshiruvchi</th>
+                <th>Izoh</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(records ?? []).map((r) => (
+                <tr key={r._id}>
+                  <td>{(r.hududId as Region)?.address}</td>
+                  <td><span className="mono">{formatDate(r.inspectionDate)}</span></td>
+                  <td>
+                    <Badge tone={r.status === 'qoidaga_muvofiq' ? 'green' : 'red'}>
+                      {r.status === 'qoidaga_muvofiq' ? 'Qoidaga muvofiq' : 'Buzilgan'}
+                    </Badge>
+                  </td>
+                  <td style={{ color: 'var(--text-2)' }}>{(r.inspectorId as { name: string })?.name}</td>
+                  <td style={{ color: 'var(--text-2)' }}>{r.notes || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </TableWrap>
         )}
       </Card>
     </div>

@@ -22,11 +22,13 @@ export function DistrictZoneFilter({
   const zoneName = zones?.find((z) => z._id === zoneId)?.name;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
-      <div className="flex flex-wrap items-center gap-1.5 text-sm text-slate-500">
+    <div className="filterbar">
+      <div className="flex flex-wrap items-center gap-1.5 text-sm" style={{ color: 'var(--text-2)' }}>
         <button
+          type="button"
           onClick={() => onChange({ districtId: '', zoneId: '' })}
-          className={`hover:text-brand ${!districtId ? 'font-medium text-slate-800' : ''}`}
+          className="link"
+          style={{ color: !districtId ? 'var(--text)' : 'var(--primary)', fontWeight: !districtId ? 700 : 700 }}
         >
           Barchasi
         </button>
@@ -34,8 +36,10 @@ export function DistrictZoneFilter({
           <>
             <ChevronRight size={14} />
             <button
+              type="button"
               onClick={() => onChange({ districtId, zoneId: '' })}
-              className={`hover:text-brand ${districtId && !zoneId ? 'font-medium text-slate-800' : ''}`}
+              className="link"
+              style={{ color: districtId && !zoneId ? 'var(--text)' : 'var(--primary)' }}
             >
               {districtName}
             </button>
@@ -44,16 +48,16 @@ export function DistrictZoneFilter({
         {zoneName && (
           <>
             <ChevronRight size={14} />
-            <span className="font-medium text-slate-800">{zoneName}</span>
+            <span style={{ fontWeight: 700, color: 'var(--text)' }}>{zoneName}</span>
           </>
         )}
       </div>
 
-      <div className="ml-auto flex items-center gap-2">
+      <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
         <select
           value={districtId}
           onChange={(e) => onChange({ districtId: e.target.value, zoneId: '' })}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+          className="select"
         >
           <option value="">Barcha tumanlar</option>
           {(districts ?? []).map((d) => (
@@ -66,7 +70,8 @@ export function DistrictZoneFilter({
           value={zoneId}
           onChange={(e) => onChange({ districtId, zoneId: e.target.value })}
           disabled={!districtId}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm disabled:opacity-50"
+          className="select"
+          style={{ opacity: districtId ? 1 : 0.5 }}
         >
           <option value="">Barcha mahallalar</option>
           {(zones ?? []).map((z) => (

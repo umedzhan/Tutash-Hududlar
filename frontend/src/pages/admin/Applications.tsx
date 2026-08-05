@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
+import { FileDown } from 'lucide-react';
 import { useApplications, downloadApplicationsExcel } from '../../api/applications';
-import { Card, CardHeader } from '../../components/Card';
-import { DataTable } from '../../components/DataTable';
-import { StatusBadge } from '../../components/StatusBadge';
-import { APPLICATION_STATUS_BADGE, APPLICATION_STATUS_LABEL } from '../../lib/status';
-import { formatDate } from '../../lib/format';
+import { Card, CardHead, TableWrap, Badge, Btn, CompAvatar } from '../../components/admin/ui';
+import { APPLICATION_STATUS_LABEL } from '../../lib/status';
+import { APPLICATION_STATUS_TONE } from '../../lib/adminTone';
+import { formatDate, initials } from '../../lib/format';
 import type { Company } from '../../types';
 
 export function AdminApplications() {
@@ -13,35 +13,52 @@ export function AdminApplications() {
 
   return (
     <Card>
-      <CardHeader
-        title="Arizalar"
+      <CardHead
+        title="Arizalar ro'yxati"
+        subtitle={`Jami ${applications?.length ?? 0} ta ariza`}
         action={
-          <button
-            onClick={() => downloadApplicationsExcel()}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
-          >
+          <Btn variant="ghost" onClick={() => downloadApplicationsExcel()}>
+            <FileDown size={14} />
             Excelga yuklash
-          </button>
+          </Btn>
         }
       />
       {isLoading ? (
-        <p className="p-4 text-slate-400">Yuklanmoqda...</p>
+        <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
       ) : (
-        <DataTable
-          onRowClick={(row) => navigate(`/admin/arizalar/${row._id}`)}
-          columns={[
-            { header: 'Ariza raqami', render: (a) => <span className="font-medium">{a.applicationNumber}</span> },
-            { header: 'Kompaniya', render: (a) => (a.companyId as Company)?.name },
-            { header: 'Hudud manzili', render: (a) => a.address },
-            { header: 'Ariza sanasi', render: (a) => formatDate(a.createdAt) },
-            {
-              header: 'Holati',
-              render: (a) => <StatusBadge label={APPLICATION_STATUS_LABEL[a.status]} className={APPLICATION_STATUS_BADGE[a.status]} />,
-            },
-          ]}
-          rows={applications ?? []}
-          rowKey={(a) => a._id}
-        />
+        <TableWrap>
+          <thead>
+            <tr>
+              <th>Ariza raqami</th>
+              <th>Kompaniya</th>
+              <th>Hudud manzili</th>
+              <th>Ariza sanasi</th>
+              <th>Holati</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(applications ?? []).map((a) => {
+              const company = a.companyId as Company;
+              const tone = APPLICATION_STATUS_TONE[a.status];
+              return (
+                <tr key={a._id} className="clickable" onClick={() => navigate(`/admin/arizalar/${a._id}`)}>
+                  <td><span className="mono">{a.applicationNumber}</span></td>
+                  <td>
+                    <div className="td-comp">
+                      <CompAvatar initials={initials(company?.name ?? '?')} tone={tone} />
+                      <b>{company?.name}</b>
+                    </div>
+                  </td>
+                  <td style={{ color: 'var(--text-2)' }}>{a.address}</td>
+                  <td><span className="mono">{formatDate(a.createdAt)}</span></td>
+                  <td>
+                    <Badge tone={tone}>{APPLICATION_STATUS_LABEL[a.status]}</Badge>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </TableWrap>
       )}
     </Card>
   );

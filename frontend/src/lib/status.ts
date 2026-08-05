@@ -106,3 +106,11 @@ export const INSPECTION_MODULE_LABEL: Record<'kadastr' | 'soliq', string> = {
   kadastr: 'Kadastr',
   soliq: 'Soliq',
 };
+
+export const ROLE_LABEL: Record<string, string> = {
+  SUPER_ADMIN: 'Super admin',
+  KADASTR: 'Kadastr xodimi',
+  ARXITEKTURA: 'Arxitektura xodimi',
+  SOLIQ: 'Soliq xodimi',
+  TADBIRKOR: 'Tadbirkor',
+};

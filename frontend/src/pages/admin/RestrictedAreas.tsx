@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { MapContainer, TileLayer, Polygon, Popup } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
+import { FileDown } from 'lucide-react';
 import { useRestrictedAreas, useCreateRestrictedArea, useDeleteRestrictedArea, downloadRestrictedAreasExcel } from '../../api/restrictedAreas';
 import { DrawControl, type DrawnPolygon } from '../../components/DrawControl';
-import { Card, CardHeader } from '../../components/Card';
+import { Card, CardHead, Btn, Select } from '../../components/admin/ui';
 import { RESTRICTED_AREA_TYPE_LABEL } from '../../lib/status';
 import type { RestrictedAreaType } from '../../types';
 
@@ -16,6 +17,15 @@ const TYPE_COLOR: Record<RestrictedAreaType, string> = {
   sanitation: '#0891b2',
   ecological: '#16a34a',
   historical: '#a16207',
+};
+
+const TYPE_ICON: Record<RestrictedAreaType, string> = {
+  red_line: '🚧',
+  road: '🛤',
+  utility: '⚡',
+  sanitation: '🚱',
+  ecological: '🌳',
+  historical: '🏛',
 };
 
 function toLatLngs(coordinates: number[][][]): LatLngExpression[] {
@@ -33,7 +43,7 @@ export function AdminRestrictedAreas() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!polygon) {
-      setError("Avval xaritada zona chegarasini chizing");
+      setError('Avval xaritada zona chegarasini chizing');
       return;
     }
     setError(null);
@@ -47,14 +57,14 @@ export function AdminRestrictedAreas() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid-2">
       <Card>
-        <CardHeader title="Muhofaza zonasi chizish" />
-        <div className="border-b border-slate-100 p-3">
-          <p className="mb-2 text-xs text-slate-500">
+        <CardHead title="Muhofaza zonasi chizish" subtitle="Yangi cheklov zonasini xaritada belgilang" />
+        <div className="map-wrap">
+          <p style={{ marginBottom: 10, fontSize: 12, color: 'var(--text-2)' }}>
             Xaritaning yuqori o'ng burchagidagi vosita yordamida muhofaza zonasi chegarasini chizing.
           </p>
-          <div style={{ height: '420px' }} className="overflow-hidden rounded-lg">
+          <div style={{ height: 420, borderRadius: 14, overflow: 'hidden' }}>
             <MapContainer center={TERMIZ_CENTER} zoom={16} scrollWheelZoom style={{ height: '100%', width: '100%' }}>
               <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <DrawControl onCreated={setPolygon} onCleared={() => setPolygon(null)} />
@@ -76,66 +86,63 @@ export function AdminRestrictedAreas() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-4">
-          <select
-            value={form.type}
-            onChange={(e) => setForm({ ...form, type: e.target.value as RestrictedAreaType })}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-          >
+        <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, padding: '0 22px 22px' }}>
+          <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as RestrictedAreaType })}>
             {Object.entries(RESTRICTED_AREA_TYPE_LABEL).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
+              <option key={value} value={value}>
+                {label}
+              </option>
             ))}
-          </select>
+          </Select>
           <input
             placeholder="Nomi (ixtiyoriy)"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+            className="as-input"
+            style={{ gridColumn: 'span 2' }}
           />
-          <button
-            type="submit"
-            disabled={createArea.isPending}
-            className="rounded-lg bg-brand px-3 py-2 text-sm text-white hover:bg-brand-light disabled:opacity-60"
-          >
+          <Btn type="submit" variant="primary" disabled={createArea.isPending}>
             Saqlash
-          </button>
-          {error && <p className="text-sm text-red-600 sm:col-span-4">{error}</p>}
+          </Btn>
+          {error && <p style={{ gridColumn: 'span 4', fontSize: 13, color: 'var(--red)' }}>{error}</p>}
         </form>
       </Card>
 
       <Card>
-        <CardHeader
-          title={`Muhofaza zonalari (${areas?.length ?? 0})`}
+        <CardHead
+          title="Zonalar ro'yxati"
+          subtitle={`${areas?.length ?? 0} ta zona`}
           action={
-            <button
-              onClick={() => downloadRestrictedAreasExcel()}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
-            >
-              Excelga yuklash
-            </button>
+            <Btn variant="ghost" onClick={() => downloadRestrictedAreasExcel()}>
+              <FileDown size={14} />
+              Excel
+            </Btn>
           }
         />
         {isLoading ? (
-          <p className="p-4 text-slate-400">Yuklanmoqda...</p>
+          <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
         ) : (
-          <div className="max-h-96 divide-y divide-slate-100 overflow-y-auto">
+          <div style={{ padding: '16px 18px 18px', maxHeight: 460, overflowY: 'auto' }}>
             {(areas ?? []).map((area) => (
-              <div key={area._id} className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: TYPE_COLOR[area.type] }} />
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">{area.name || RESTRICTED_AREA_TYPE_LABEL[area.type]}</p>
-                    <p className="text-xs text-slate-500">{RESTRICTED_AREA_TYPE_LABEL[area.type]}</p>
-                  </div>
+              <div key={area._id} className="zone">
+                <div className="zone-ic" style={{ background: `${TYPE_COLOR[area.type]}22`, color: TYPE_COLOR[area.type] }}>
+                  {TYPE_ICON[area.type]}
+                </div>
+                <div className="zone-body">
+                  <b>{area.name || RESTRICTED_AREA_TYPE_LABEL[area.type]}</b>
+                  <p>{RESTRICTED_AREA_TYPE_LABEL[area.type]}</p>
                 </div>
                 <button
+                  type="button"
+                  className="link"
+                  style={{ color: 'var(--red)' }}
                   onClick={() => deleteArea.mutate(area._id)}
-                  className="rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
                 >
                   O'chirish
                 </button>
               </div>
             ))}
+            {(areas ?? []).length === 0 && <p style={{ padding: 20, textAlign: 'center', fontSize: 13, color: 'var(--text-3)' }}>Zona yo'q</p>}
           </div>
         )}
       </Card>

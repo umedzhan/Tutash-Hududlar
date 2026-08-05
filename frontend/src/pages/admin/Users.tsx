@@ -1,15 +1,17 @@
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { useUsers, useCreateUser, useCompanies } from '../../api/users';
-import { Card, CardHeader } from '../../components/Card';
-import { DataTable } from '../../components/DataTable';
-import { StatusBadge } from '../../components/StatusBadge';
+import { Card, CardHead, TableWrap, Badge, Btn, Select, CompAvatar } from '../../components/admin/ui';
+import { ROLE_LABEL } from '../../lib/status';
+import { initials } from '../../lib/format';
+import { TONE_VAR, type Tone } from '../../lib/adminTone';
 
-const ROLE_LABEL: Record<string, string> = {
-  SUPER_ADMIN: 'Super admin',
-  KADASTR: 'Kadastr xodimi',
-  ARXITEKTURA: 'Arxitektura xodimi',
-  SOLIQ: 'Soliq xodimi',
-  TADBIRKOR: 'Tadbirkor',
+const ROLE_TONE: Record<string, Tone> = {
+  SUPER_ADMIN: 'blue',
+  KADASTR: 'green',
+  ARXITEKTURA: 'violet',
+  SOLIQ: 'amber',
+  TADBIRKOR: 'cyan',
 };
 
 export function AdminUsers() {
@@ -27,57 +29,99 @@ export function AdminUsers() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <button onClick={() => setShowForm((v) => !v)} className="rounded-lg bg-brand px-3 py-1.5 text-sm text-white hover:bg-brand-light">
-          {showForm ? 'Bekor qilish' : '+ Yangi foydalanuvchi'}
-        </button>
+    <div>
+      <div className="filterbar">
+        <div style={{ marginLeft: 'auto' }}>
+          <Btn variant="primary" onClick={() => setShowForm((v) => !v)}>
+            <Plus size={14} />
+            {showForm ? 'Bekor qilish' : 'Yangi foydalanuvchi'}
+          </Btn>
+        </div>
       </div>
 
       {showForm && (
-        <Card>
-          <CardHeader title="Yangi foydalanuvchi qo'shish" />
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-3 lg:grid-cols-5">
-            <input required placeholder="F.I.Sh." value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <input required placeholder="Telefon" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <input required type="password" placeholder="Parol" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+        <Card style={{ marginBottom: 16 }}>
+          <CardHead title="Yangi foydalanuvchi qo'shish" />
+          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, padding: 22 }}>
+            <input required placeholder="F.I.Sh." value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="as-input" />
+            <input required placeholder="Telefon" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="as-input" />
+            <input
+              required
+              type="password"
+              placeholder="Parol"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="as-input"
+            />
+            <Select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
               <option value="TADBIRKOR">Tadbirkor</option>
               <option value="KADASTR">Kadastr xodimi</option>
               <option value="ARXITEKTURA">Arxitektura xodimi</option>
               <option value="SOLIQ">Soliq xodimi</option>
               <option value="SUPER_ADMIN">Super admin</option>
-            </select>
+            </Select>
             {form.role === 'TADBIRKOR' && (
-              <select required value={form.companyId} onChange={(e) => setForm({ ...form, companyId: e.target.value })} className="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <Select required value={form.companyId} onChange={(e) => setForm({ ...form, companyId: e.target.value })}>
                 <option value="">Kompaniya...</option>
                 {(companies ?? []).map((c) => (
-                  <option key={c._id} value={c._id}>{c.name}</option>
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
                 ))}
-              </select>
+              </Select>
             )}
-            <button type="submit" className="rounded-lg bg-brand px-3 py-2 text-sm text-white hover:bg-brand-light">
+            <Btn type="submit" variant="primary">
               Saqlash
-            </button>
+            </Btn>
           </form>
         </Card>
       )}
 
       <Card>
+        <CardHead title="Xodimlar ro'yxati" subtitle="Rollar va kirish huquqlari" />
         {isLoading ? (
-          <p className="p-4 text-slate-400">Yuklanmoqda...</p>
+          <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
         ) : (
-          <DataTable
-            columns={[
-              { header: 'F.I.Sh.', render: (u) => u.name },
-              { header: 'Telefon', render: (u) => u.phone },
-              { header: 'Rol', render: (u) => ROLE_LABEL[u.role] },
-              { header: 'Kompaniya', render: (u) => u.companyId?.name ?? '—' },
-              { header: 'Holati', render: (u) => <StatusBadge label={u.status} className="bg-slate-100 text-slate-600" /> },
-            ]}
-            rows={users ?? []}
-            rowKey={(u) => u._id}
-          />
+          <TableWrap>
+            <thead>
+              <tr>
+                <th>Xodim</th>
+                <th>Rol</th>
+                <th>Kompaniya</th>
+                <th>Holati</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(users ?? []).map((u) => (
+                <tr key={u._id}>
+                  <td>
+                    <div className="td-comp">
+                      <CompAvatar initials={initials(u.name)} tone={ROLE_TONE[u.role] ?? 'blue'} />
+                      <div>
+                        <b>{u.name}</b>
+                        <div className="td-sub">{u.phone}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span
+                      className="role"
+                      style={{
+                        background: `var(--${TONE_VAR[ROLE_TONE[u.role] ?? 'blue']}-soft)`,
+                        color: `var(--${TONE_VAR[ROLE_TONE[u.role] ?? 'blue']})`,
+                      }}
+                    >
+                      {ROLE_LABEL[u.role]}
+                    </span>
+                  </td>
+                  <td style={{ color: 'var(--text-2)' }}>{u.companyId?.name ?? '—'}</td>
+                  <td>
+                    <Badge tone={u.status === 'faol' ? 'green' : 'red'}>{u.status}</Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </TableWrap>
         )}
       </Card>
     </div>

@@ -1,21 +1,22 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useExpiringContracts } from '../../api/reports';
-import { Card } from '../../components/Card';
-import { StatusBadge } from '../../components/StatusBadge';
+import { Card, TableWrap, Badge, Seg, SegButton, Empty } from '../../components/admin/ui';
 import { DistrictZoneFilter, type DistrictZoneFilterValue } from '../../components/DistrictZoneFilter';
 import { formatDate, formatSom } from '../../lib/format';
+import { CheckCircle2 } from 'lucide-react';
+import type { Tone } from '../../lib/adminTone';
 
-const RANGE_TABS: { value: 30 | 60 | 90; label: string; badge: string }[] = [
-  { value: 30, label: '30 kun ichida', badge: 'bg-red-100 text-red-700' },
-  { value: 60, label: '60 kun ichida', badge: 'bg-amber-100 text-amber-700' },
-  { value: 90, label: '90 kun ichida', badge: 'bg-blue-100 text-blue-700' },
+const RANGE_TABS: { value: 30 | 60 | 90; label: string }[] = [
+  { value: 30, label: '30 kun ichida' },
+  { value: 60, label: '60 kun ichida' },
+  { value: 90, label: '90 kun ichida' },
 ];
 
-const GROUP_BADGE: Record<string, string> = {
-  '30': 'bg-red-100 text-red-700',
-  '60': 'bg-amber-100 text-amber-700',
-  '90': 'bg-blue-100 text-blue-700',
+const GROUP_TONE: Record<string, Tone> = {
+  '30': 'red',
+  '60': 'amber',
+  '90': 'blue',
 };
 
 export function AdminExpiringContracts() {
@@ -24,72 +25,68 @@ export function AdminExpiringContracts() {
   const { data: contracts, isLoading } = useExpiringContracts(filter, range);
 
   return (
-    <div className="space-y-4">
-      <DistrictZoneFilter districtId={filter.districtId} zoneId={filter.zoneId} onChange={setFilter} />
+    <div>
+      <div style={{ marginBottom: 16 }}>
+        <DistrictZoneFilter districtId={filter.districtId} zoneId={filter.zoneId} onChange={setFilter} />
+      </div>
 
-      <div className="flex gap-2">
-        {RANGE_TABS.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => setRange(tab.value)}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-              range === tab.value ? 'bg-brand text-white' : 'border border-slate-300 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="filterbar">
+        <Seg>
+          {RANGE_TABS.map((tab) => (
+            <SegButton key={tab.value} active={range === tab.value} onClick={() => setRange(tab.value)}>
+              {tab.label}
+            </SegButton>
+          ))}
+        </Seg>
       </div>
 
       <Card>
         {isLoading ? (
-          <p className="p-8 text-center text-sm text-slate-400">Yuklanmoqda...</p>
+          <p style={{ padding: 40, textAlign: 'center', fontSize: 13, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
         ) : (contracts ?? []).length === 0 ? (
-          <p className="p-8 text-center text-sm text-slate-400">Tanlangan davrda muddati tugaydigan faol shartnoma yo'q</p>
+          <Empty icon={CheckCircle2} title="Hammasi joyida!" text="Tanlangan davrda muddati tugaydigan faol shartnoma yo'q." />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 text-left text-xs text-slate-400">
-                  <th className="px-4 py-2 font-normal">Subyekt</th>
-                  <th className="px-4 py-2 font-normal">Hudud</th>
-                  <th className="px-4 py-2 font-normal">Tuman / Mahalla</th>
-                  <th className="px-4 py-2 font-normal">Tugash sanasi</th>
-                  <th className="px-4 py-2 font-normal">Qolgan kun</th>
-                  <th className="px-4 py-2 font-normal">To'lov holati</th>
+          <TableWrap>
+            <thead>
+              <tr>
+                <th>Subyekt</th>
+                <th>Hudud</th>
+                <th>Tuman / Mahalla</th>
+                <th>Tugash sanasi</th>
+                <th>Qolgan kun</th>
+                <th>To'lov holati</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(contracts ?? []).map((c) => (
+                <tr key={c._id}>
+                  <td>
+                    <Link to="/admin/shartnomalar" style={{ fontWeight: 700, color: 'var(--text)' }}>
+                      {c.company.name}
+                    </Link>
+                    <div className="td-sub">
+                      STIR: {c.company.stir} · {c.company.director} · {c.company.phones?.join(', ')}
+                    </div>
+                  </td>
+                  <td style={{ color: 'var(--text-2)' }}>{c.region?.address ?? '-'}</td>
+                  <td style={{ color: 'var(--text-2)' }}>
+                    {c.district?.name ?? '-'} {c.zone ? `/ ${c.zone.name}` : ''}
+                  </td>
+                  <td><span className="mono">{formatDate(c.periodTo)}</span></td>
+                  <td>
+                    <Badge tone={GROUP_TONE[c.group]}>{c.daysLeft} kun</Badge>
+                  </td>
+                  <td>
+                    {c.debt > 0 ? (
+                      <span style={{ fontWeight: 700, color: 'var(--red)' }}>Qarzi bor: {formatSom(c.debt)}</span>
+                    ) : (
+                      <span style={{ color: 'var(--green)' }}>Qarzi yo'q</span>
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {(contracts ?? []).map((c) => (
-                  <tr key={c._id} className="border-b border-slate-50">
-                    <td className="px-4 py-2.5">
-                      <Link to={`/admin/shartnomalar`} className="font-medium text-slate-800 hover:text-brand">
-                        {c.company.name}
-                      </Link>
-                      <p className="text-xs text-slate-400">
-                        STIR: {c.company.stir} · {c.company.director} · {c.company.phones?.join(', ')}
-                      </p>
-                    </td>
-                    <td className="px-4 py-2.5 text-slate-600">{c.region?.address ?? '-'}</td>
-                    <td className="px-4 py-2.5 text-slate-600">
-                      {c.district?.name ?? '-'} {c.zone ? `/ ${c.zone.name}` : ''}
-                    </td>
-                    <td className="px-4 py-2.5 text-slate-600">{formatDate(c.periodTo)}</td>
-                    <td className="px-4 py-2.5">
-                      <StatusBadge label={`${c.daysLeft} kun`} className={GROUP_BADGE[c.group]} />
-                    </td>
-                    <td className="px-4 py-2.5">
-                      {c.debt > 0 ? (
-                        <span className="font-medium text-red-600">Qarzi bor: {formatSom(c.debt)}</span>
-                      ) : (
-                        <span className="text-emerald-600">Qarzi yo'q</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </TableWrap>
         )}
       </Card>
     </div>

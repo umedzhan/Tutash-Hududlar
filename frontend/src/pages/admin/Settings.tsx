@@ -1,11 +1,12 @@
 import { CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
-import { Card, CardHeader } from '../../components/Card';
+import { Card, CardHead } from '../../components/admin/ui';
+import { ROLE_LABEL } from '../../lib/status';
 
 const INTEGRATIONS = [
   { name: 'OneID', desc: 'Foydalanuvchi autentifikatsiyasi' },
   { name: 'E-IMZO', desc: 'Shartnomalarni elektron imzolash' },
-  { name: 'Soliq (e-ijara)', desc: "Shartnomalarni soliq tizimiga sinxronlash" },
+  { name: 'Soliq (e-ijara)', desc: 'Shartnomalarni soliq tizimiga sinxronlash' },
   { name: 'Click / Payme', desc: "To'lovlarni qabul qilish" },
 ];
 
@@ -13,31 +14,40 @@ export function AdminSettings() {
   const user = useAuthStore((s) => s.user);
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+    <div className="grid-2" style={{ alignItems: 'start' }}>
       <Card>
-        <CardHeader title="Profil" />
-        <div className="space-y-2 p-4 text-sm">
-          <p><span className="text-slate-400">F.I.Sh.:</span> {user?.name}</p>
-          <p><span className="text-slate-400">Telefon:</span> {user?.phone}</p>
-          <p><span className="text-slate-400">Rol:</span> {user?.role}</p>
+        <CardHead title="Profil" subtitle="Shaxsiy hisob ma'lumotlari" />
+        <div style={{ padding: 22 }}>
+          <div className="set-row" style={{ borderTop: 'none' }}>
+            <b>F.I.Sh.</b>
+            <span className="mono">{user?.name}</span>
+          </div>
+          <div className="set-row">
+            <b>Telefon</b>
+            <span className="mono">{user?.phone}</span>
+          </div>
+          <div className="set-row">
+            <b>Rol</b>
+            <span>{user ? (ROLE_LABEL[user.role] ?? user.role) : ''}</span>
+          </div>
         </div>
       </Card>
 
       <Card>
-        <CardHeader title="Tashqi integratsiyalar holati" />
-        <ul className="divide-y divide-slate-100">
+        <CardHead title="Tashqi integratsiyalar holati" subtitle="Hozircha mock (sinov) rejimida" />
+        <div style={{ padding: '4px 22px 8px' }}>
           {INTEGRATIONS.map((i) => (
-            <li key={i.name} className="flex items-center justify-between px-4 py-3">
+            <div key={i.name} className="set-row">
               <div>
-                <p className="text-sm font-medium text-slate-800">{i.name}</p>
-                <p className="text-xs text-slate-500">{i.desc}</p>
+                <b>{i.name}</b>
+                <p>{i.desc}</p>
               </div>
-              <span className="flex items-center gap-1 text-xs text-amber-600">
-                <CheckCircle2 size={14} /> Mock rejim
+              <span className="badge t-amber" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <CheckCircle2 size={12} /> Mock rejim
               </span>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       </Card>
     </div>
   );
