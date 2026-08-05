@@ -5,6 +5,7 @@ import type { AdminNavGroup } from '../components/admin/AdminSidebar';
 import { AdminHeader } from '../components/admin/AdminHeader';
 import { useNotifications } from '../api/notifications';
 import { useThemeStore } from '../store/themeStore';
+import { Chatbot } from '../components/chatbot/Chatbot';
 import '../styles/admin-theme.css';
 
 const TITLES: Record<string, [string, string]> = {
@@ -58,6 +59,7 @@ export function TadbirkorLayout() {
           </div>
         </div>
       </div>
+      <Chatbot />
     </div>
   );
 }

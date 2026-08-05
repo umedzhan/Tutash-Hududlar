@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import './landing.css';
 import { LandingNav, Logo } from './LandingNav';
 import { HERO_ART_SVG, STEP1_ART_SVG, STEP2_ART_SVG, STEP3_ART_SVG, STEP4_ART_SVG } from './landingArt';
+import { Chatbot } from '../../components/chatbot/Chatbot';
 
 const STATS = [
   { count: 412, label: 'Viloyat reyestridagi hududlar' },
@@ -342,6 +343,8 @@ export function Landing() {
           </div>
         </div>
       </footer>
+
+      <Chatbot />
     </div>
   );
 }
