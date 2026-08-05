@@ -113,6 +113,7 @@ export async function createViolation(req, res) {
     roles: [ROLES.SUPER_ADMIN, ROLES.KADASTR, ROLES.SOLIQ],
     message: `Yangi noqonuniy yer foydalanish holati aniqlandi: ${address}`,
     type: 'warning',
+    prefKey: 'violations',
   });
 
   res.status(201).json(record);
@@ -135,6 +136,7 @@ export async function updateViolationStatus(req, res) {
     roles: [ROLES.SUPER_ADMIN],
     message: `Noqonuniy yer foydalanish holati o'zgardi (${record.address}): ${status}`,
     type: 'info',
+    prefKey: 'violations',
   });
 
   res.json(record);

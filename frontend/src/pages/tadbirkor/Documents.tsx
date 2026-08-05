@@ -1,6 +1,6 @@
 import { FileDown } from 'lucide-react';
 import { useContracts } from '../../api/contracts';
-import { Card } from '../../components/Card';
+import { Card, CardHead } from '../../components/admin/ui';
 import { formatDate } from '../../lib/format';
 import type { Region } from '../../types';
 
@@ -10,23 +10,26 @@ export function TadbirkorDocuments() {
 
   return (
     <Card>
+      <CardHead title="Hujjatlarim" subtitle={`Jami ${withPdf.length} ta hujjat`} />
       {isLoading ? (
-        <p className="p-4 text-slate-400">Yuklanmoqda...</p>
+        <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
       ) : (
-        <ul className="divide-y divide-slate-100">
+        <div className="ariza-list">
           {withPdf.map((c) => (
-            <li key={c._id} className="flex items-center justify-between px-4 py-3">
-              <div>
-                <p className="text-sm font-medium text-slate-800">Shartnoma {c.contractNumber}</p>
-                <p className="text-xs text-slate-500">{(c.hududId as Region)?.address} · {formatDate(c.createdAt)}</p>
+            <div key={c._id} className="ariza" style={{ cursor: 'default' }}>
+              <div className="ariza-body">
+                <b>Shartnoma {c.contractNumber}</b>
+                <p>
+                  {(c.hududId as Region)?.address} · {formatDate(c.createdAt)}
+                </p>
               </div>
-              <a href={c.pdfPath!} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50">
+              <a href={c.pdfPath!} target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ padding: '7px 13px', fontSize: 11.5, textDecoration: 'none' }}>
                 <FileDown size={14} /> Yuklab olish
               </a>
-            </li>
+            </div>
           ))}
-          {withPdf.length === 0 && <p className="px-4 py-8 text-center text-sm text-slate-400">Hozircha hujjatlar yo'q</p>}
-        </ul>
+          {withPdf.length === 0 && <p style={{ padding: 32, textAlign: 'center', fontSize: 13, color: 'var(--text-3)' }}>Hozircha hujjatlar yo'q</p>}
+        </div>
       )}
     </Card>
   );

@@ -1,32 +1,38 @@
 import { useMyRegions } from '../../api/regions';
-import { Card, CardHeader } from '../../components/Card';
+import { Card, CardHead } from '../../components/admin/ui';
 import { MapView } from '../../components/MapView';
 
 export function TadbirkorMyRegions() {
   const { data: regions, isLoading } = useMyRegions();
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader title="Mening hududlarim" />
-        <div className="p-3">
-          {isLoading ? <p className="text-slate-400">Yuklanmoqda...</p> : <MapView regions={regions ?? []} height="420px" />}
+    <div>
+      <Card style={{ marginBottom: 16 }}>
+        <CardHead title="Mening hududlarim" />
+        <div className="map-wrap">
+          {isLoading ? <p style={{ color: 'var(--text-3)' }}>Yuklanmoqda...</p> : <MapView regions={regions ?? []} height="420px" />}
         </div>
       </Card>
 
       <Card>
-        <div className="divide-y divide-slate-100">
+        <div className="hud-grid">
           {(regions ?? []).map((r) => (
-            <div key={r._id} className="flex items-center justify-between px-4 py-3 text-sm">
-              <div>
-                <p className="font-medium text-slate-800">{r.address}</p>
-                <p className="text-xs text-slate-500">{r.district}</p>
+            <div key={r._id} className="hud st-band">
+              <div className="hud-top">
+                <div>
+                  <b>{r.address}</b>
+                  <p>{r.district}</p>
+                </div>
               </div>
-              <span className="text-slate-600">{r.areaM2} m²</span>
+              <div className="hud-foot">
+                <span>{r.areaM2} m²</span>
+              </div>
             </div>
           ))}
-          {regions && regions.length === 0 && <p className="px-4 py-8 text-center text-sm text-slate-400">Hozircha faol hududingiz yo'q</p>}
         </div>
+        {regions && regions.length === 0 && (
+          <p style={{ padding: 32, textAlign: 'center', fontSize: 13, color: 'var(--text-3)' }}>Hozircha faol hududingiz yo'q</p>
+        )}
       </Card>
     </div>
   );

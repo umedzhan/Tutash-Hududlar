@@ -9,6 +9,13 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: Object.values(ROLES), required: true },
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', default: null },
     status: { type: String, enum: ['onlayn', 'offlayn', 'bloklangan'], default: 'offlayn' },
+    notificationPrefs: {
+      applications: { type: Boolean, default: true },
+      payments: { type: Boolean, default: true },
+      expiringContracts: { type: Boolean, default: true },
+      violations: { type: Boolean, default: true },
+      dailyEmailSummary: { type: Boolean, default: false },
+    },
   },
   { timestamps: true },
 );

@@ -53,11 +53,12 @@ export async function me(req, res) {
     role: user.role,
     phone: user.phone,
     company: user.companyId,
+    notificationPrefs: user.notificationPrefs,
   });
 }
 
 export async function updateMe(req, res) {
-  const { name, phone, currentPassword, newPassword } = req.body;
+  const { name, phone, currentPassword, newPassword, notificationPrefs } = req.body;
   const user = await User.findById(req.user.id);
   if (!user) {
     return res.status(404).json({ message: 'Foydalanuvchi topilmadi' });
@@ -71,6 +72,9 @@ export async function updateMe(req, res) {
     user.phone = phone;
   }
   if (name) user.name = name;
+  if (notificationPrefs) {
+    user.notificationPrefs = { ...user.notificationPrefs?.toObject?.(), ...notificationPrefs };
+  }
 
   if (newPassword) {
     if (!currentPassword) {
@@ -86,5 +90,12 @@ export async function updateMe(req, res) {
   await user.save();
   await logAction({ req, action: 'update', entity: 'User', entityId: user._id, diff: { self: true } });
 
-  res.json({ id: user._id, name: user.name, role: user.role, phone: user.phone, companyId: user.companyId });
+  res.json({
+    id: user._id,
+    name: user.name,
+    role: user.role,
+    phone: user.phone,
+    companyId: user.companyId,
+    notificationPrefs: user.notificationPrefs,
+  });
 }

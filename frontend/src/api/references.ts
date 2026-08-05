@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from './client';
 import type { District, Purpose, Tariff, Zone } from '../types';
 
@@ -28,5 +28,14 @@ export function useTariff() {
   return useQuery({
     queryKey: ['tariff'],
     queryFn: async () => (await apiClient.get<Tariff>('/references/tariff')).data,
+  });
+}
+
+export function useUpdateTariff() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Partial<Pick<Tariff, 'baseRate' | 'seasonalCoefficient' | 'penaltyRatePerDay' | 'penaltyCapPercent' | 'minAreaM2' | 'maxAreaM2'>>) =>
+      (await apiClient.patch<Tariff>('/references/tariff', payload)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tariff'] }),
   });
 }

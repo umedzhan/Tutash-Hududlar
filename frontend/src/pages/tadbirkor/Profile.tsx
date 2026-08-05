@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { FileText } from 'lucide-react';
 import { useMyCompany, useUpdateMyCompany } from '../../api/users';
 import { useDistricts, useZones } from '../../api/references';
-import { Card, CardHeader } from '../../components/Card';
+import { Card, CardHead, Select, Btn } from '../../components/admin/ui';
 import type { District, Zone } from '../../types';
 
 export function TadbirkorProfile() {
@@ -80,28 +80,30 @@ export function TadbirkorProfile() {
   }
 
   if (isLoading) {
-    return <p className="text-slate-400">Yuklanmoqda...</p>;
+    return <p style={{ color: 'var(--text-3)' }}>Yuklanmoqda...</p>;
   }
 
   return (
-    <Card className="max-w-3xl">
-      <CardHeader title="Foydalanuvchi profili" />
-      <form onSubmit={handleSubmit} className="space-y-4 p-4">
+    <Card style={{ maxWidth: 760 }}>
+      <CardHead title="Foydalanuvchi profili" subtitle="Korxona va aloqa ma'lumotlari" />
+      <form onSubmit={handleSubmit} style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Korxona nomi">
-            <input required value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-          </Field>
-          <Field label="STIR raqami">
-            <input required value={stir} onChange={(e) => setStir(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-          </Field>
-          <Field label="Hudud">
-            <select
+          <div className="field">
+            <label>Korxona nomi</label>
+            <input required value={name} onChange={(e) => setName(e.target.value)} className="as-input" />
+          </div>
+          <div className="field">
+            <label>STIR raqami</label>
+            <input required value={stir} onChange={(e) => setStir(e.target.value)} className="as-input" />
+          </div>
+          <div className="field">
+            <label>Hudud</label>
+            <Select
               value={districtId}
               onChange={(e) => {
                 setDistrictId(e.target.value);
                 setZoneId('');
               }}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
             >
               <option value="">Tanlang</option>
               {(districts ?? []).map((d) => (
@@ -109,92 +111,80 @@ export function TadbirkorProfile() {
                   {d.name}
                 </option>
               ))}
-            </select>
-          </Field>
-          <Field label="Mahalla">
-            <select value={zoneId} onChange={(e) => setZoneId(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            </Select>
+          </div>
+          <div className="field">
+            <label>Mahalla</label>
+            <Select value={zoneId} onChange={(e) => setZoneId(e.target.value)}>
               <option value="">Tanlang</option>
               {(zones ?? []).map((z) => (
                 <option key={z._id} value={z._id}>
                   {z.name}
                 </option>
               ))}
-            </select>
-          </Field>
+            </Select>
+          </div>
         </div>
 
-        <Field label="Tadbirkorlik xududi manzili">
-          <input value={address} onChange={(e) => setAddress(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Ko'cha, uy raqami..." />
-        </Field>
+        <div className="field">
+          <label>Tadbirkorlik xududi manzili</label>
+          <input value={address} onChange={(e) => setAddress(e.target.value)} className="as-input" placeholder="Ko'cha, uy raqami..." />
+        </div>
 
-        <Field label="Davlat tomonidan ro'yxatga olinganligini tasdiqlovchi hujjat (PDF yoki rasm)">
+        <div className="field">
+          <label>Davlat tomonidan ro'yxatga olinganligini tasdiqlovchi hujjat (PDF yoki rasm)</label>
           <input
             type="file"
             accept="application/pdf,image/jpeg,image/png,image/webp"
             onChange={(e) => setRegistrationDocument(e.target.files?.[0] ?? null)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="as-input"
           />
           {company?.registrationDocument && !registrationDocument && (
-            <a href={company.registrationDocument} target="_blank" rel="noreferrer" className="mt-1 flex items-center gap-1.5 text-xs text-brand-light hover:underline">
+            <a href={company.registrationDocument} target="_blank" rel="noreferrer" className="link" style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
               <FileText size={14} /> Yuklangan hujjatni ko'rish
             </a>
           )}
-        </Field>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Rahbar ism familiyasi">
-            <input required value={director} onChange={(e) => setDirector(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-          </Field>
-          <Field label="Elektron pochtasi">
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-          </Field>
         </div>
 
-        <Field label="Telefon raqami (3 tagacha)">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="field">
+            <label>Rahbar ism familiyasi</label>
+            <input required value={director} onChange={(e) => setDirector(e.target.value)} className="as-input" />
+          </div>
+          <div className="field">
+            <label>Elektron pochtasi</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="as-input" />
+          </div>
+        </div>
+
+        <div className="field">
+          <label>Telefon raqami (3 tagacha)</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {phones.map((phone, index) => (
-              <div key={index} className="flex gap-2">
-                <input
-                  value={phone}
-                  onChange={(e) => updatePhone(index, e.target.value)}
-                  placeholder="+998 XX XXX XX XX"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                />
+              <div key={index} style={{ display: 'flex', gap: 8 }}>
+                <input value={phone} onChange={(e) => updatePhone(index, e.target.value)} placeholder="+998 XX XXX XX XX" className="as-input" />
                 {phones.length > 1 && (
-                  <button type="button" onClick={() => removePhone(index)} className="rounded-lg border border-slate-300 px-3 text-sm text-slate-500 hover:bg-slate-50">
-                    &times;
+                  <button type="button" onClick={() => removePhone(index)} className="btn btn-ghost" style={{ padding: '0 14px' }}>
+                    ×
                   </button>
                 )}
               </div>
             ))}
             {phones.length < 3 && (
-              <button type="button" onClick={addPhone} className="text-xs text-brand-light hover:underline">
+              <button type="button" onClick={addPhone} className="link" style={{ alignSelf: 'flex-start' }}>
                 + Yana bir raqam qo'shish
               </button>
             )}
           </div>
-        </Field>
+        </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        {success && <p className="text-sm text-emerald-600">Profil saqlandi</p>}
+        {error && <p style={{ fontSize: 13, color: 'var(--red)' }}>{error}</p>}
+        {success && <p style={{ fontSize: 13, color: 'var(--green)' }}>Profil saqlandi</p>}
 
-        <button
-          type="submit"
-          disabled={updateCompany.isPending}
-          className="rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-light disabled:opacity-60"
-        >
+        <Btn type="submit" variant="primary" disabled={updateCompany.isPending} style={{ alignSelf: 'flex-start' }}>
           Saqlash
-        </button>
+        </Btn>
       </form>
     </Card>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="mb-1 block text-xs text-slate-500">{label}</label>
-      {children}
-    </div>
   );
 }

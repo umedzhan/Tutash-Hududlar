@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApplication, useGeometryConsent, useProvideInfo } from '../../api/applications';
 import { useContracts } from '../../api/contracts';
-import { Card, CardHeader } from '../../components/Card';
-import { StatusBadge } from '../../components/StatusBadge';
+import { Card, CardHead, Badge } from '../../components/admin/ui';
 import { MapView } from '../../components/MapView';
-import { APPLICATION_STATUS_BADGE, APPLICATION_STATUS_LABEL, STAGE_LABEL } from '../../lib/status';
+import { APPLICATION_STATUS_LABEL, STAGE_LABEL } from '../../lib/status';
+import { APPLICATION_STATUS_TONE } from '../../lib/adminTone';
 import { formatDate, formatSom } from '../../lib/format';
 import type { Region } from '../../types';
 
@@ -25,7 +25,7 @@ export function TadbirkorApplicationDetail() {
   const [error, setError] = useState<string | null>(null);
 
   if (isLoading || !application) {
-    return <p className="text-slate-400">Yuklanmoqda...</p>;
+    return <p style={{ color: 'var(--text-3)' }}>Yuklanmoqda...</p>;
   }
 
   const relatedContract = contracts?.find((c) => c.applicationId === application._id);
@@ -54,15 +54,14 @@ export function TadbirkorApplicationDetail() {
     setInfoComment('');
   }
 
+  const tone = APPLICATION_STATUS_TONE[application.status];
+
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <div className="space-y-4 lg:col-span-2">
         <Card>
-          <CardHeader
-            title={application.applicationNumber}
-            action={<StatusBadge label={APPLICATION_STATUS_LABEL[application.status]} className={APPLICATION_STATUS_BADGE[application.status]} />}
-          />
-          <div className="grid grid-cols-1 gap-3 p-4 text-sm sm:grid-cols-2">
+          <CardHead title={application.applicationNumber} action={<Badge tone={tone}>{APPLICATION_STATUS_LABEL[application.status]}</Badge>} />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" style={{ padding: 22 }}>
             <Info label="Manzil / hudud" value={application.address} />
             <Info label="Maqsad" value={application.purpose} />
             <Info label="Foydalanish turi" value={application.usageType} />
@@ -73,16 +72,16 @@ export function TadbirkorApplicationDetail() {
         </Card>
 
         <Card>
-          <CardHeader title="Hudud chegarasi" />
-          <div className="p-3">
+          <CardHead title="Hudud chegarasi" />
+          <div className="map-wrap">
             <MapView regions={[fakeRegion(application.geometry, application.areaM2, application._id)]} height="360px" />
           </div>
         </Card>
 
         {application.photos && (
           <Card>
-            <CardHeader title="Hudud rasmlari (4 tarafdan)" />
-            <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-4">
+            <CardHead title="Hudud rasmlari (4 tarafdan)" />
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" style={{ padding: 22 }}>
               <PhotoThumb label="Shimol" src={application.photos.shimol} />
               <PhotoThumb label="Janub" src={application.photos.janub} />
               <PhotoThumb label="Sharq" src={application.photos.sharq} />
@@ -93,82 +92,61 @@ export function TadbirkorApplicationDetail() {
 
         {application.priceSnapshot && (
           <Card>
-            <CardHeader title="Narx dekompozitsiyasi" />
-            <div className="grid grid-cols-2 gap-2 p-4 text-sm sm:grid-cols-3">
-              <Info label="Yillik ijara" value={formatSom(application.priceSnapshot.annualRent)} />
-              <Info label="Muddat" value={`${application.priceSnapshot.months} oy (${application.priceSnapshot.years} marta to'lanadi)`} />
-              <Info label="Jami" value={formatSom(application.priceSnapshot.total)} />
+            <CardHead title="Narx dekompozitsiyasi" />
+            <div className="kv-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+              <div className="kv"><span>Yillik ijara</span><b>{formatSom(application.priceSnapshot.annualRent)}</b></div>
+              <div className="kv"><span>Muddat</span><b>{application.priceSnapshot.months} oy ({application.priceSnapshot.years} marta)</b></div>
+              <div className="kv"><span>Jami</span><b style={{ color: 'var(--primary)' }}>{formatSom(application.priceSnapshot.total)}</b></div>
             </div>
           </Card>
         )}
 
         <Card>
-          <CardHeader title="Bosqichlar tarixi" />
-          <ul className="space-y-3 p-4">
+          <CardHead title="Bosqichlar tarixi" />
+          <div style={{ padding: '10px 22px 22px' }}>
             {application.history.map((h, idx) => (
-              <li key={idx} className="flex items-start gap-3 text-sm">
-                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand" />
+              <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0' }}>
+                <span style={{ marginTop: 6, width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)', flexShrink: 0 }} />
                 <div>
-                  <p className="font-medium text-slate-800">{APPLICATION_STATUS_LABEL[h.status]}</p>
-                  <p className="text-xs text-slate-500">{formatDate(h.date)}{h.comment ? ` — ${h.comment}` : ''}</p>
+                  <p style={{ fontWeight: 700, fontSize: 13 }}>{APPLICATION_STATUS_LABEL[h.status]}</p>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-2)' }}>
+                    {formatDate(h.date)}
+                    {h.comment ? ` — ${h.comment}` : ''}
+                  </p>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </Card>
       </div>
 
       <div className="space-y-4">
         {application.status === 'AWAITING_CONSENT' && lastVersion && (
           <Card>
-            <CardHeader title="Chizmaga kiritilgan o'zgartirish" />
-            <div className="space-y-3 p-4 text-sm">
-              <p className="text-slate-600">
-                Admin hudud chegarasini tahrirladi (yangi maydon: <span className="font-medium">{lastVersion.areaM2} m²</span>).
+            <CardHead title="Chizmaga kiritilgan o'zgartirish" />
+            <div style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <p style={{ fontSize: 13, color: 'var(--text-2)' }}>
+                Admin hudud chegarasini tahrirladi (yangi maydon: <b style={{ color: 'var(--text)' }}>{lastVersion.areaM2} m²</b>).
               </p>
-              {lastVersion.changeNote && <p className="text-xs text-slate-500">Izoh: {lastVersion.changeNote}</p>}
-              <button
-                onClick={() => handleConsent(true)}
-                disabled={geometryConsent.isPending}
-                className="w-full rounded-lg bg-emerald-600 py-2 text-sm text-white hover:bg-emerald-700 disabled:opacity-60"
-              >
+              {lastVersion.changeNote && <p style={{ fontSize: 11.5, color: 'var(--text-3)' }}>Izoh: {lastVersion.changeNote}</p>}
+              <button type="button" onClick={() => handleConsent(true)} disabled={geometryConsent.isPending} className="btn btn-ok" style={{ justifyContent: 'center' }}>
                 Rozilik berish
               </button>
-              <textarea
-                value={objectionNote}
-                onChange={(e) => setObjectionNote(e.target.value)}
-                rows={2}
-                placeholder="E'tiroz sababi..."
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              />
-              <button
-                onClick={() => handleConsent(false)}
-                disabled={geometryConsent.isPending}
-                className="w-full rounded-lg border border-red-300 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-60"
-              >
+              <textarea value={objectionNote} onChange={(e) => setObjectionNote(e.target.value)} rows={2} placeholder="E'tiroz sababi..." className="as-input" />
+              <button type="button" onClick={() => handleConsent(false)} disabled={geometryConsent.isPending} className="btn btn-no" style={{ justifyContent: 'center' }}>
                 E'tiroz bildirish
               </button>
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {error && <p style={{ fontSize: 13, color: 'var(--red)' }}>{error}</p>}
             </div>
           </Card>
         )}
 
         {application.status === 'INFO_REQUESTED' && (
           <Card>
-            <CardHeader title="Qo'shimcha ma'lumot so'ralgan" />
-            <form onSubmit={handleProvideInfo} className="space-y-2 p-4 text-sm">
-              <textarea
-                value={infoComment}
-                onChange={(e) => setInfoComment(e.target.value)}
-                rows={3}
-                placeholder="Javob / qo'shimcha ma'lumot..."
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              />
-              <button
-                type="submit"
-                disabled={provideInfo.isPending}
-                className="w-full rounded-lg bg-brand py-2 text-sm text-white hover:bg-brand-light disabled:opacity-60"
-              >
+            <CardHead title="Qo'shimcha ma'lumot so'ralgan" />
+            <form onSubmit={handleProvideInfo} style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <textarea value={infoComment} onChange={(e) => setInfoComment(e.target.value)} rows={3} placeholder="Javob / qo'shimcha ma'lumot..." className="as-input" />
+              <button type="submit" disabled={provideInfo.isPending} className="btn btn-primary" style={{ justifyContent: 'center' }}>
                 Yuborish
               </button>
             </form>
@@ -177,19 +155,19 @@ export function TadbirkorApplicationDetail() {
 
         {relatedContract && (
           <Card>
-            <CardHeader title="Bog'liq shartnoma" />
-            <div className="space-y-2 p-4 text-sm">
-              <p className="font-medium">{relatedContract.contractNumber}</p>
-              <p className="text-slate-500">Jami: {formatSom(relatedContract.total)}</p>
-              <Link to="/tadbirkor/shartnomalarim" className="text-brand-light hover:underline">
+            <CardHead title="Bog'liq shartnoma" />
+            <div style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
+              <p style={{ fontWeight: 700 }}>{relatedContract.contractNumber}</p>
+              <p style={{ color: 'var(--text-2)' }}>Jami: {formatSom(relatedContract.total)}</p>
+              <Link to="/tadbirkor/shartnomalarim" className="link">
                 Shartnomalarim bo'limiga o'tish →
               </Link>
             </div>
           </Card>
         )}
 
-        <Link to="/tadbirkor/arizalarim" className="block text-center text-sm text-slate-500 hover:text-slate-700">
-          &larr; Ro'yxatga qaytish
+        <Link to="/tadbirkor/arizalarim" className="link" style={{ display: 'block', textAlign: 'center' }}>
+          ← Ro'yxatga qaytish
         </Link>
       </div>
     </div>
@@ -199,17 +177,17 @@ export function TadbirkorApplicationDetail() {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs text-slate-400">{label}</p>
-      <p className="text-slate-800">{value}</p>
+      <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{label}</p>
+      <p style={{ fontSize: 13, color: 'var(--text)' }}>{value}</p>
     </div>
   );
 }
 
 function PhotoThumb({ label, src }: { label: string; src: string }) {
   return (
-    <a href={src} target="_blank" rel="noreferrer" className="block">
-      <img src={src} alt={label} className="h-24 w-full rounded-lg border border-slate-200 object-cover" />
-      <p className="mt-1 text-center text-xs text-slate-500">{label}</p>
+    <a href={src} target="_blank" rel="noreferrer" style={{ display: 'block' }}>
+      <img src={src} alt={label} style={{ height: 96, width: '100%', borderRadius: 12, border: '1px solid var(--border)', objectFit: 'cover' }} />
+      <p style={{ marginTop: 4, textAlign: 'center', fontSize: 11, color: 'var(--text-2)' }}>{label}</p>
     </a>
   );
 }

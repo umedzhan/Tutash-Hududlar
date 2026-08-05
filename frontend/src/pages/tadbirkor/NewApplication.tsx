@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateApplication, usePreviewApplication, type PreviewApplicationResult } from '../../api/applications';
 import { useDistricts, usePurposes, useTariff, useZones } from '../../api/references';
-import { Card, CardHeader } from '../../components/Card';
+import { Card, CardHead, Select, Btn } from '../../components/admin/ui';
 import { MapView } from '../../components/MapView';
 import type { DrawnPolygon } from '../../components/DrawControl';
 import { formatSom } from '../../lib/format';
@@ -104,7 +104,7 @@ export function TadbirkorNewApplication() {
           onError: (err) => {
             setPriceResult(null);
             const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-            setError(message ?? "Chizmani tekshirishda xatolik yuz berdi");
+            setError(message ?? 'Chizmani tekshirishda xatolik yuz berdi');
           },
         },
       );
@@ -117,15 +117,15 @@ export function TadbirkorNewApplication() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!polygon) {
-      setError("Avval xaritada hudud chegarasini chizing");
+      setError('Avval xaritada hudud chegarasini chizing');
       return;
     }
     if (!districtId || !purposeId || !zoneId) {
-      setError("Tuman, mahalla yoki maqsad tanlanmagan");
+      setError('Tuman, mahalla yoki maqsad tanlanmagan');
       return;
     }
     if (!priceResult) {
-      setError("Chizma hali tekshirilmadi — biroz kuting yoki chizmani qayta chizing");
+      setError('Chizma hali tekshirilmadi — biroz kuting yoki chizmani qayta chizing');
       return;
     }
     if (!photos.shimol || !photos.janub || !photos.sharq || !photos.gharb) {
@@ -156,11 +156,12 @@ export function TadbirkorNewApplication() {
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <Card className="lg:col-span-2">
-        <CardHeader title="1. Hudud chegarasini chizing" />
-        <div className="border-b border-slate-100 p-3">
-          <p className="mb-2 text-xs text-slate-500">
-            Xaritaning yuqori o'ng burchagidagi vosita yordamida ijaraga olmoqchi bo'lgan hudud chegarasini ko'pburchak yoki
-            to'rtburchak shaklida chizing. Maydon avtomatik hisoblanadi va band/taqiqlangan hududlar bilan tekshiriladi.
+        <CardHead title="1. Hudud chegarasini chizing" />
+        <div className="map-wrap">
+          <p style={{ marginBottom: 10, fontSize: 12, color: 'var(--text-2)' }}>
+            Xaritaning yuqori o'ng burchagidagi vosita yordamida ijaraga olmoqchi bo'lgan hudud chegarasini ko'pburchak
+            yoki to'rtburchak shaklida chizing. Maydon avtomatik hisoblanadi va band/taqiqlangan hududlar bilan
+            tekshiriladi.
           </p>
           <MapView
             regions={[]}
@@ -174,107 +175,97 @@ export function TadbirkorNewApplication() {
           />
         </div>
         {polygon && (
-          <div className="p-4 text-sm">
-            <p className="text-slate-500">
-              Chizilgan maydon: <span className="font-medium text-slate-800">{polygon.areaM2} m²</span>
-            </p>
-          </div>
+          <p style={{ padding: '0 22px 22px', fontSize: 13, color: 'var(--text-2)' }}>
+            Chizilgan maydon: <b style={{ color: 'var(--text)' }}>{polygon.areaM2} m²</b>
+          </p>
         )}
       </Card>
 
       <Card>
-        <CardHeader title="2. Ariza ma'lumotlari" />
-        <form onSubmit={handleSubmit} className="space-y-3 p-4">
-          <div>
-            <label className="mb-1 block text-xs text-slate-500">Tuman/shahar</label>
-            <select
-              value={districtId}
-              onChange={(e) => setDistrictId(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            >
+        <CardHead title="2. Ariza ma'lumotlari" />
+        <form onSubmit={handleSubmit} style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="field">
+            <label>Tuman/shahar</label>
+            <Select value={districtId} onChange={(e) => setDistrictId(e.target.value)}>
               {(districts ?? []).map((d) => (
                 <option key={d._id} value={d._id}>
                   {d.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
-          <div>
-            <label className="mb-1 block text-xs text-slate-500">Mahalla</label>
-            <select
-              value={zoneId}
-              onChange={(e) => setZoneId(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            >
+          <div className="field">
+            <label>Mahalla</label>
+            <Select value={zoneId} onChange={(e) => setZoneId(e.target.value)}>
               {(zones ?? []).map((z) => (
                 <option key={z._id} value={z._id}>
                   {z.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
-          <div>
-            <label className="mb-1 block text-xs text-slate-500">Maqsad</label>
-            <select
-              value={purposeId}
-              onChange={(e) => setPurposeId(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            >
+          <div className="field">
+            <label>Maqsad</label>
+            <Select value={purposeId} onChange={(e) => setPurposeId(e.target.value)}>
               {(purposes ?? []).map((p) => (
                 <option key={p._id} value={p._id}>
                   {p.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
-          <div>
-            <label className="mb-1 block text-xs text-slate-500">Foydalanish turi</label>
-            <select value={usageType} onChange={(e) => setUsageType(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+          <div className="field">
+            <label>Foydalanish turi</label>
+            <Select value={usageType} onChange={(e) => setUsageType(e.target.value)}>
               <option>Doimiy</option>
               <option>Mavsumiy (terrasa)</option>
-            </select>
+            </Select>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="mb-1 block text-xs text-slate-500">Boshlanish</label>
-              <input required type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+            <div className="field">
+              <label>Boshlanish</label>
+              <input required type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="as-input" />
             </div>
-            <div>
-              <label className="mb-1 block text-xs text-slate-500">Tugash</label>
-              <input required type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+            <div className="field">
+              <label>Tugash</label>
+              <input required type="date" value={to} onChange={(e) => setTo(e.target.value)} className="as-input" />
             </div>
           </div>
 
-          <div className="rounded-lg border border-dashed border-slate-300 p-3">
-            <label className="mb-1 block text-xs font-medium text-slate-600">Narx kalkulyatori (taxminiy maydon bo'yicha)</label>
+          <div style={{ borderRadius: 12, border: '1px dashed var(--border-2)', padding: 14 }}>
+            <label style={{ marginBottom: 6, display: 'block', fontSize: 11.5, fontWeight: 700, color: 'var(--text-2)' }}>
+              Narx kalkulyatori (taxminiy maydon bo'yicha)
+            </label>
             <input
               type="number"
               min="1"
               value={calcAreaM2}
               onChange={(e) => setCalcAreaM2(e.target.value)}
               placeholder="Taxminiy maydon, m²"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="as-input"
             />
             {calcAreaM2 && !calcResult && (
-              <p className="mt-2 text-xs text-slate-400">Mahalla, maqsad va davrni tanlang — narx avtomatik hisoblanadi.</p>
+              <p style={{ marginTop: 8, fontSize: 11.5, color: 'var(--text-3)' }}>
+                Mahalla, maqsad va davrni tanlang — narx avtomatik hisoblanadi.
+              </p>
             )}
             {calcResult && (
-              <div className="mt-2 space-y-1 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
+              <div className="kv" style={{ marginTop: 10 }}>
                 <Row label="Yillik ijara" value={formatSom(calcResult.annualRent)} />
                 <Row label="Muddat" value={`${calcResult.months} oy (${calcResult.years} marta to'lanadi)`} />
-                <hr className="my-1 border-slate-200" />
+                <hr style={{ margin: '6px 0', border: 'none', borderTop: '1px solid var(--border)' }} />
                 <Row label="Taxminiy jami" value={formatSom(calcResult.total)} bold />
               </div>
             )}
           </div>
 
-          <div>
-            <label className="mb-1 block text-xs text-slate-500">Qo'shimcha ma'lumot</label>
-            <textarea value={comment} onChange={(e) => setComment(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" rows={3} placeholder="Izoh kiriting..." />
+          <div className="field">
+            <label>Qo'shimcha ma'lumot</label>
+            <textarea value={comment} onChange={(e) => setComment(e.target.value)} className="as-input" rows={3} placeholder="Izoh kiriting..." />
           </div>
 
-          <div className="rounded-lg border border-dashed border-slate-300 p-3">
-            <label className="mb-2 block text-xs font-medium text-slate-600">
+          <div style={{ borderRadius: 12, border: '1px dashed var(--border-2)', padding: 14 }}>
+            <label style={{ marginBottom: 8, display: 'block', fontSize: 11.5, fontWeight: 700, color: 'var(--text-2)' }}>
               Ijaraga olmoqchi bo'lgan hududni 4 tarafdan rasmga olib yuboring
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -285,27 +276,28 @@ export function TadbirkorNewApplication() {
             </div>
           </div>
 
-          {preview.isPending && <p className="text-xs text-slate-400">Narx hisoblanmoqda...</p>}
+          {preview.isPending && <p style={{ fontSize: 11.5, color: 'var(--text-3)' }}>Narx hisoblanmoqda...</p>}
 
           {priceResult && (
-            <div className="space-y-1 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
-              <p className="mb-1 font-medium text-slate-700">3. Aniq narx (chizilgan maydon bo'yicha)</p>
+            <div className="kv">
+              <p style={{ marginBottom: 6, fontWeight: 700, fontSize: 12, color: 'var(--text)' }}>3. Aniq narx (chizilgan maydon bo'yicha)</p>
               <Row label="Yillik ijara" value={formatSom(priceResult.price.annualRent)} />
               <Row label="Muddat" value={`${priceResult.price.months} oy (${priceResult.price.years} marta to'lanadi)`} />
-              <hr className="my-1 border-slate-200" />
+              <hr style={{ margin: '6px 0', border: 'none', borderTop: '1px solid var(--border)' }} />
               <Row label="Jami" value={formatSom(priceResult.price.total)} bold />
             </div>
           )}
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p style={{ fontSize: 13, color: 'var(--red)' }}>{error}</p>}
 
-          <button
+          <Btn
             type="submit"
+            variant="primary"
             disabled={createApplication.isPending || !priceResult || !photos.shimol || !photos.janub || !photos.sharq || !photos.gharb}
-            className="w-full rounded-lg bg-brand py-2.5 text-sm font-medium text-white hover:bg-brand-light disabled:opacity-60"
+            style={{ justifyContent: 'center' }}
           >
             4. Ariza yuborish
-          </button>
+          </Btn>
         </form>
       </Card>
     </div>
@@ -314,7 +306,7 @@ export function TadbirkorNewApplication() {
 
 function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
-    <div className={`flex justify-between ${bold ? 'font-semibold text-slate-800' : ''}`}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: bold ? 800 : 600, color: bold ? 'var(--text)' : 'var(--text-2)' }}>
       <span>{label}</span>
       <span>{value}</span>
     </div>
@@ -323,15 +315,24 @@ function Row({ label, value, bold }: { label: string; value: string; bold?: bool
 
 function PhotoInput({ label, file, onChange }: { label: string; file: File | null; onChange: (file: File | null) => void }) {
   return (
-    <label className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-slate-300 p-2 text-center text-xs hover:bg-slate-50">
-      <input
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        className="hidden"
-        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
-      />
-      <span className="font-medium text-slate-600">{label}</span>
-      <span className={file ? 'text-emerald-600' : 'text-slate-400'}>{file ? file.name : 'Rasm tanlang'}</span>
+    <label
+      style={{
+        display: 'flex',
+        cursor: 'pointer',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 4,
+        borderRadius: 12,
+        border: '1px solid var(--border)',
+        padding: 10,
+        textAlign: 'center',
+        fontSize: 11.5,
+      }}
+    >
+      <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={(e) => onChange(e.target.files?.[0] ?? null)} />
+      <span style={{ fontWeight: 700, color: 'var(--text-2)' }}>{label}</span>
+      <span style={{ color: file ? 'var(--green)' : 'var(--text-3)' }}>{file ? file.name : 'Rasm tanlang'}</span>
     </label>
   );
 }

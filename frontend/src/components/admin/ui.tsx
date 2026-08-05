@@ -126,6 +126,20 @@ export function Btn({
   return <button className={`btn btn-${variant} ${className}`} style={style} {...rest} />;
 }
 
+export function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (next: boolean) => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      className={`toggle ${checked ? 'on' : ''}`}
+      onClick={() => onChange(!checked)}
+      style={disabled ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
+    />
+  );
+}
+
 export function Empty({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text: ReactNode }) {
   return (
     <div className="empty">

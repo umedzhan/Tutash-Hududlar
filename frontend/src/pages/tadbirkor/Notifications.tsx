@@ -1,5 +1,5 @@
 import { useNotifications, useMarkNotificationRead } from '../../api/notifications';
-import { Card } from '../../components/Card';
+import { Card, CardHead } from '../../components/admin/ui';
 import { formatDate } from '../../lib/format';
 import { Bell } from 'lucide-react';
 
@@ -9,27 +9,31 @@ export function TadbirkorNotifications() {
 
   return (
     <Card>
+      <CardHead title="Xabarnomalar" subtitle={`Jami ${notifications?.length ?? 0} ta`} />
       {isLoading ? (
-        <p className="p-4 text-slate-400">Yuklanmoqda...</p>
+        <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
       ) : (
-        <ul className="divide-y divide-slate-100">
+        <div className="ariza-list">
           {(notifications ?? []).map((n) => (
-            <li
+            <div
               key={n._id}
               onClick={() => !n.isRead && markRead.mutate(n._id)}
-              className={`flex cursor-pointer items-start gap-3 px-4 py-3 ${n.isRead ? '' : 'bg-blue-50/50'}`}
+              className="ariza"
+              style={{ background: n.isRead ? undefined : 'var(--primary-soft)' }}
             >
-              <div className="mt-0.5 text-brand-light"><Bell size={16} /></div>
-              <div>
-                <p className={`text-sm ${n.isRead ? 'text-slate-600' : 'font-medium text-slate-900'}`}>{n.message}</p>
-                <p className="text-xs text-slate-400">{formatDate(n.createdAt)}</p>
+              <div className="ariza-av c-blue">
+                <Bell size={16} />
               </div>
-            </li>
+              <div className="ariza-body">
+                <b style={{ fontWeight: n.isRead ? 600 : 800 }}>{n.message}</b>
+                <p>{formatDate(n.createdAt)}</p>
+              </div>
+            </div>
           ))}
           {notifications && notifications.length === 0 && (
-            <p className="px-4 py-8 text-center text-sm text-slate-400">Xabarnomalar yo'q</p>
+            <p style={{ padding: 32, textAlign: 'center', fontSize: 13, color: 'var(--text-3)' }}>Xabarnomalar yo'q</p>
           )}
-        </ul>
+        </div>
       )}
     </Card>
   );

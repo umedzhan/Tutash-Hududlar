@@ -1,8 +1,7 @@
 import { usePayments, useMarkPaid } from '../../api/payments';
-import { Card } from '../../components/Card';
-import { DataTable } from '../../components/DataTable';
-import { StatusBadge } from '../../components/StatusBadge';
-import { PAYMENT_STATUS_BADGE, PAYMENT_STATUS_LABEL } from '../../lib/status';
+import { Card, CardHead, TableWrap, Badge } from '../../components/admin/ui';
+import { PAYMENT_STATUS_LABEL } from '../../lib/status';
+import { PAYMENT_STATUS_TONE } from '../../lib/adminTone';
 import { formatDate, formatSom } from '../../lib/format';
 import type { Contract, Region } from '../../types';
 
@@ -12,34 +11,42 @@ export function TadbirkorMyPayments() {
 
   return (
     <Card>
+      <CardHead title="To'lovlarim" subtitle={`Jami ${payments?.length ?? 0} ta yozuv`} />
       {isLoading ? (
-        <p className="p-4 text-slate-400">Yuklanmoqda...</p>
+        <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
       ) : (
-        <DataTable
-          columns={[
-            { header: 'Hudud', render: (p) => ((p.contractId as Contract)?.hududId as Region)?.address },
-            { header: 'Summa', render: (p) => formatSom(p.amount) },
-            { header: 'Muddat', render: (p) => formatDate(p.dueDate) },
-            { header: 'Holati', render: (p) => <StatusBadge label={PAYMENT_STATUS_LABEL[p.status]} className={PAYMENT_STATUS_BADGE[p.status]} /> },
-            {
-              header: 'Amal',
-              render: (p) =>
-                p.status === 'kutilmoqda' ? (
-                  <button
-                    onClick={() => markPaid.mutate(p._id)}
-                    disabled={markPaid.isPending}
-                    className="rounded-lg bg-brand px-3 py-1 text-xs text-white hover:bg-brand-light disabled:opacity-60"
-                  >
-                    To'lov qilish
-                  </button>
-                ) : (
-                  p.paidDate && formatDate(p.paidDate)
-                ),
-            },
-          ]}
-          rows={payments ?? []}
-          rowKey={(p) => p._id}
-        />
+        <TableWrap>
+          <thead>
+            <tr>
+              <th>Hudud</th>
+              <th style={{ textAlign: 'right' }}>Summa</th>
+              <th>Muddat</th>
+              <th>Holati</th>
+              <th>Amal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(payments ?? []).map((p) => (
+              <tr key={p._id}>
+                <td style={{ color: 'var(--text-2)' }}>{((p.contractId as Contract)?.hududId as Region)?.address}</td>
+                <td style={{ textAlign: 'right' }}><span className="mono">{formatSom(p.amount)}</span></td>
+                <td><span className="mono">{formatDate(p.dueDate)}</span></td>
+                <td>
+                  <Badge tone={PAYMENT_STATUS_TONE[p.status]}>{PAYMENT_STATUS_LABEL[p.status]}</Badge>
+                </td>
+                <td>
+                  {p.status === 'kutilmoqda' ? (
+                    <button type="button" onClick={() => markPaid.mutate(p._id)} disabled={markPaid.isPending} className="btn btn-primary" style={{ padding: '7px 13px', fontSize: 11.5 }}>
+                      To'lov qilish
+                    </button>
+                  ) : (
+                    p.paidDate && <span className="mono">{formatDate(p.paidDate)}</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </TableWrap>
       )}
     </Card>
   );
