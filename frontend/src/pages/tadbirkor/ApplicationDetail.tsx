@@ -66,7 +66,7 @@ export function TadbirkorApplicationDetail() {
             {application.cadastreNumber && <Info label="Kadastr raqami" value={application.cadastreNumber} />}
             <Info label="Maqsad" value={application.purpose} />
             <Info label="Foydalanish turi" value={application.usageType} />
-            <Info label="Maydon" value={`${application.areaM2} m²`} />
+            <Info label="Maydon" value={application.areaM2 != null ? `${application.areaM2} m²` : 'Hali belgilanmagan'} />
             <Info label="Davr" value={`${formatDate(application.period.from)} — ${formatDate(application.period.to)}`} />
             {application.currentStage && <Info label="Joriy bosqich" value={STAGE_LABEL[application.currentStage]} />}
           </div>
@@ -75,7 +75,13 @@ export function TadbirkorApplicationDetail() {
         <Card>
           <CardHead title="Hudud chegarasi" />
           <div className="map-wrap">
-            <MapView regions={[fakeRegion(application.geometry, application.areaM2, application._id)]} height="360px" />
+            {application.geometry && application.areaM2 != null ? (
+              <MapView regions={[fakeRegion(application.geometry, application.areaM2, application._id)]} height="360px" />
+            ) : (
+              <p style={{ padding: 22, fontSize: 13, color: 'var(--text-2)' }}>
+                Hudud chegarasi hali Kadastr xodimi tomonidan belgilanmagan. Belgilangach, rozilik berish uchun sizga xabar keladi.
+              </p>
+            )}
           </div>
         </Card>
 

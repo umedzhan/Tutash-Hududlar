@@ -31,6 +31,15 @@ export function useTariff() {
   });
 }
 
+export function useUpdatePurpose() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...payload }: { id: string } & Partial<Pick<Purpose, 'name' | 'coefficient' | 'seasonalAllowed'>>) =>
+      (await apiClient.patch<Purpose>(`/references/purposes/${id}`, payload)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['purposes'] }),
+  });
+}
+
 export function useUpdateTariff() {
   const queryClient = useQueryClient();
   return useMutation({

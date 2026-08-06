@@ -137,7 +137,7 @@ export function AdminApplicationDetail() {
             {application.cadastreNumber && <Info label="Kadastr raqami" value={application.cadastreNumber} />}
             <Info label="Maqsad" value={application.purpose} />
             <Info label="Foydalanish turi" value={application.usageType} />
-            <Info label="Maydon" value={`${application.areaM2} m²`} />
+            <Info label="Maydon" value={application.areaM2 != null ? `${application.areaM2} m²` : 'Hali belgilanmagan'} />
             <Info label="Davr" value={`${formatDate(application.period.from)} — ${formatDate(application.period.to)}`} />
             <Info label="Izoh" value={application.comment || '—'} />
             {application.currentStage && <Info label="Joriy bosqich" value={STAGE_LABEL[application.currentStage]} />}
@@ -158,8 +158,12 @@ export function AdminApplicationDetail() {
           <div className="map-wrap">
             {editMode ? (
               <MapView regions={[]} height="380px" drawable onPolygonDrawn={setEditedGeometry} onPolygonCleared={() => setEditedGeometry(null)} />
-            ) : (
+            ) : application.geometry && application.areaM2 != null ? (
               <MapView regions={[fakeRegion(application.geometry, application.areaM2, application._id)]} height="380px" />
+            ) : (
+              <p style={{ padding: 22, fontSize: 13, color: 'var(--text-2)' }}>
+                Hudud chegarasi hali belgilanmagan — Telegram bot orqali yuborilgan ariza, chegarani "Tuzatish bilan tasdiqlash" orqali chizib bering.
+              </p>
             )}
           </div>
         </Card>

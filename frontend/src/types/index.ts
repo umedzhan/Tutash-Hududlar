@@ -153,8 +153,8 @@ export interface Application {
   comment: string;
   address: string;
   cadastreNumber: string;
-  geometry: { type: 'Polygon'; coordinates: number[][][] };
-  areaM2: number;
+  geometry: { type: 'Polygon'; coordinates: number[][][] } | null;
+  areaM2: number | null;
   photos: { shimol: string; janub: string; sharq: string; gharb: string };
   geometryVersions: GeometryVersion[];
   currentStage: Stage | null;

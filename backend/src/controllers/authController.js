@@ -4,7 +4,7 @@ import User from '../models/User.js';
 import { env } from '../config/env.js';
 import { logAction } from '../middleware/auditLogger.js';
 
-function signToken(user) {
+export function signToken(user) {
   return jwt.sign(
     { id: user._id.toString(), role: user.role, name: user.name, companyId: user.companyId },
     env.jwtSecret,

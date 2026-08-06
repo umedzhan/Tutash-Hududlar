@@ -63,11 +63,14 @@ const applicationSchema = new mongoose.Schema(
     address: { type: String, default: '' },
     cadastreNumber: { type: String, trim: true, default: '' },
 
+    // Bot orqali topshirilgan arizada hali chizilmagan bo'lishi mumkin — shu holatda
+    // butunlay o'rnatilmay qoladi (2dsphere indeksi bunday hujjatlarni shunchaki e'tiborsiz qoldiradi).
+    // Kadastr xodimi ko'rib chiqish bosqichida (approve_with_changes) birinchi chizmani chizadi.
     geometry: {
-      type: { type: String, enum: ['Polygon'], required: true },
-      coordinates: { type: [[[Number]]], required: true },
+      type: { type: String, enum: ['Polygon'] },
+      coordinates: { type: [[[Number]]] },
     },
-    areaM2: { type: Number, required: true },
+    areaM2: { type: Number, default: null },
     geometryVersions: { type: [geometryVersionSchema], default: [] },
 
     photos: {

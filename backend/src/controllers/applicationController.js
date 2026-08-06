@@ -1,5 +1,6 @@
 import Application from '../models/Application.js';
 import District from '../models/District.js';
+import User from '../models/User.js';
 import {
   decideStage as decideStageWorkflow,
   geometryConsent as geometryConsentWorkflow,
@@ -8,11 +9,22 @@ import {
 } from '../services/applicationWorkflow.js';
 import { validateGeometry } from '../services/geoValidation.js';
 import { calculatePrice } from '../services/pricing.js';
+import { generateApplicationReceiptPdf } from '../services/applicationReceiptPdf.js';
+import { sendTelegramMessage } from '../services/integrations/telegram.js';
 import { autoGenerateContract } from './contractController.js';
 import { logAction } from '../middleware/auditLogger.js';
-import { ROLES, APPLICATION_STATUS, STAGES, STAGE_ROLE_MAP } from '../constants.js';
+import { ROLES, APPLICATION_STATUS, STAGES, STAGE_ROLE_MAP, STAGE_LABEL } from '../constants.js';
 import { buildExcelBuffer, sendExcel, exportFilename as excelFilename } from '../services/exportExcel.js';
 import { buildRecordWordBuffer, sendWord, exportFilename as wordFilename } from '../services/exportWord.js';
+
+// Ariza egasi Telegram bot orqali ro'yxatdan o'tgan bo'lsa (telegramChatId bor), holat
+// o'zgarganda unga botda xabar yuboradi. Aks holda hech narsa qilmaydi (sayt orqali
+// ro'yxatdan o'tgan tadbirkorlar uchun bu shunchaki jim o'tkazib yuboriladi).
+async function notifyApplicant(application, text, replyMarkup) {
+  const applicant = await User.findById(application.applicantId).select('telegramChatId');
+  if (!applicant?.telegramChatId) return;
+  await sendTelegramMessage(applicant.telegramChatId, text, replyMarkup);
+}
 
 const APPLICATION_STATUS_LABEL_UZ = {
   DRAFT: 'Qoralama',
@@ -154,7 +166,9 @@ const PHOTO_SIDE_LABEL = { shimol: 'shimol', janub: 'janub', sharq: 'sharq', gha
 
 export async function createApplication(req, res) {
   const { districtId, purposeId, zoneId, purpose, usageType, comment, cadastreNumber } = req.body;
-  const geometry = typeof req.body.geometry === 'string' ? JSON.parse(req.body.geometry) : req.body.geometry;
+  const geometry = req.body.geometry
+    ? (typeof req.body.geometry === 'string' ? JSON.parse(req.body.geometry) : req.body.geometry)
+    : undefined;
   const period = typeof req.body.period === 'string' ? JSON.parse(req.body.period) : req.body.period;
 
   const files = req.files || {};
@@ -167,16 +181,28 @@ export async function createApplication(req, res) {
     photos[side] = `/uploads/applications/${file.filename}`;
   }
 
-  const { areaM2 } = await validateGeometry({ geometry });
-  const priceSnapshot = await calculatePrice({
-    areaM2,
-    districtId,
-    purposeId,
-    zoneId,
-    usageType,
-    dateFrom: period.from,
-    dateTo: period.to,
-  });
+  // Telegram bot orqali yuborilgan arizada hudud chegarasi chizilmaydi (bot bunday
+  // imkoniyatga ega emas) — bunday holatda kadastr raqami majburiy, u orqali
+  // Kadastr xodimi keyinroq chegarani o'zi belgilab beradi (approve_with_changes oqimi).
+  const hasGeometry = Boolean(geometry);
+  if (!hasGeometry && !cadastreNumber) {
+    return res.status(400).json({ message: 'Hudud chegarasi ko\'rsatilmagan holatda kadastr raqami majburiy' });
+  }
+
+  let areaM2;
+  let priceSnapshot = null;
+  if (hasGeometry) {
+    ({ areaM2 } = await validateGeometry({ geometry }));
+    priceSnapshot = await calculatePrice({
+      areaM2,
+      districtId,
+      purposeId,
+      zoneId,
+      usageType,
+      dateFrom: period.from,
+      dateTo: period.to,
+    });
+  }
   const district = await District.findById(districtId);
 
   const applicationNumber = await nextApplicationNumber();
@@ -192,22 +218,25 @@ export async function createApplication(req, res) {
     period,
     comment,
     cadastreNumber: cadastreNumber || '',
-    address: `${district?.name ?? ''} — tadbirkor tomonidan chizilgan hudud`,
-    geometry,
-    areaM2,
+    address: hasGeometry
+      ? `${district?.name ?? ''} — tadbirkor tomonidan chizilgan hudud`
+      : `${district?.name ?? ''} — chegara kadastr tomonidan belgilanadi`,
+    ...(hasGeometry ? { geometry, areaM2 } : {}),
     photos,
-    geometryVersions: [
-      {
-        version: 1,
-        geometry,
-        areaM2,
-        authorType: 'business',
-        authorId: req.user.id,
-        changeNote: '',
-        acceptedByBusiness: true,
-        createdAt: new Date(),
-      },
-    ],
+    geometryVersions: hasGeometry
+      ? [
+          {
+            version: 1,
+            geometry,
+            areaM2,
+            authorType: 'business',
+            authorId: req.user.id,
+            changeNote: '',
+            acceptedByBusiness: true,
+            createdAt: new Date(),
+          },
+        ]
+      : [],
     currentStage: 'cadastre',
     stages: initStages(),
     priceSnapshot,
@@ -223,7 +252,17 @@ export async function createApplication(req, res) {
   });
 
   await logAction({ req, action: 'create', entity: 'Application', entityId: application._id });
-  res.status(201).json(application);
+
+  let receiptPdfPath;
+  if (!hasGeometry) {
+    const populated = await Application.findById(application._id)
+      .populate('companyId')
+      .populate('districtId')
+      .populate('zoneId');
+    receiptPdfPath = await generateApplicationReceiptPdf(populated);
+  }
+
+  res.status(201).json({ ...application.toObject(), receiptPdfPath });
 }
 
 export async function decideStageController(req, res) {
@@ -251,6 +290,42 @@ export async function decideStageController(req, res) {
 
   if (result.finalApproved) {
     await autoGenerateContract(application, req);
+    await notifyApplicant(
+      application,
+      `✅ <b>${application.applicationNumber}</b> arizangiz to'liq tasdiqlandi va shartnoma tayyorlandi.\n\n` +
+        `Shartnomani ko'rish va tasdiqlash uchun <b>ijara.soliq.uz</b> saytiga kirishingiz mumkin.`,
+    );
+  } else if (decision === 'approve') {
+    const nextStage = application.currentStage;
+    await notifyApplicant(
+      application,
+      `➡️ <b>${application.applicationNumber}</b> arizangiz "${STAGE_LABEL[stage]}" bosqichidan o'tdi, ` +
+        `hozir "${STAGE_LABEL[nextStage]}" bosqichida ko'rib chiqilmoqda.`,
+    );
+  } else if (decision === 'approve_with_changes') {
+    await notifyApplicant(
+      application,
+      `📐 <b>${application.applicationNumber}</b> arizangiz bo'yicha Kadastr xodimi hudud chegarasini belgiladi.\n\n` +
+        (note ? `Izoh: ${note}\n\n` : '') +
+        `Iltimos, chegara bilan tanishib, roziligingizni bildiring.`,
+      {
+        inline_keyboard: [[
+          { text: '✅ Rozilik bildirish', callback_data: `geo_accept:${application._id}` },
+          { text: '❌ E\'tiroz bildirish', callback_data: `geo_reject:${application._id}` },
+        ]],
+      },
+    );
+  } else if (decision === 'reject') {
+    await notifyApplicant(
+      application,
+      `⛔ <b>${application.applicationNumber}</b> arizangiz rad etildi.\n\nSabab: ${note}`,
+    );
+  } else if (decision === 'request_info') {
+    await notifyApplicant(
+      application,
+      `ℹ️ <b>${application.applicationNumber}</b> arizangiz bo'yicha qo'shimcha ma'lumot so'ralmoqda.\n\n` +
+        `So'rov: ${note}`,
+    );
   }
 
   await logAction({ req, action: 'decideStage', entity: 'Application', entityId: application._id, diff: { stage, decision } });
@@ -267,11 +342,46 @@ export async function geometryConsentController(req, res) {
     return res.status(403).json({ message: 'Bu ariza sizga tegishli emas' });
   }
 
+  // Telegram bot orqali (hudud chizmasi bo'lmagan holda) yuborilgan arizada narx faqat
+  // shu bosqichda, Kadastr chizgan chegara asosida hisoblanadi (yaratilishda hisoblanmagan).
+  if (accept && !application.priceSnapshot) {
+    const lastVersion = application.geometryVersions[application.geometryVersions.length - 1];
+    if (lastVersion) {
+      application.priceSnapshot = await calculatePrice({
+        areaM2: lastVersion.areaM2,
+        districtId: application.districtId,
+        purposeId: application.purposeId,
+        zoneId: application.zoneId,
+        usageType: application.usageType,
+        dateFrom: application.period.from,
+        dateTo: application.period.to,
+      });
+    }
+  }
+
   const result = geometryConsentWorkflow(application, { accept, note, byUserId: req.user.id });
   await application.save();
 
   if (result.finalApproved) {
     await autoGenerateContract(application, req);
+    await notifyApplicant(
+      application,
+      `✅ <b>${application.applicationNumber}</b> arizangiz to'liq tasdiqlandi va shartnoma tayyorlandi.\n\n` +
+        `Shartnomani ko'rish va tasdiqlash uchun <b>ijara.soliq.uz</b> saytiga kirishingiz mumkin.`,
+    );
+  } else if (accept) {
+    const nextStage = application.currentStage;
+    await notifyApplicant(
+      application,
+      `✅ Rozilik qabul qilindi. <b>${application.applicationNumber}</b> arizangiz hozir ` +
+        `"${STAGE_LABEL[nextStage]}" bosqichida ko'rib chiqilmoqda.`,
+    );
+  } else {
+    await notifyApplicant(
+      application,
+      `❌ <b>${application.applicationNumber}</b> arizangiz bo'yicha e'tirozingiz qabul qilindi. ` +
+        `Ariza qayta ko'rib chiqilmoqda.`,
+    );
   }
 
   await logAction({ req, action: 'geometryConsent', entity: 'Application', entityId: application._id, diff: { accept } });

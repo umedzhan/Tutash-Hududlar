@@ -17,6 +17,21 @@ export async function listPurposes(req, res) {
   res.json(await Purpose.find().sort({ name: 1 }));
 }
 
+const PURPOSE_FIELDS = ['name', 'coefficient', 'seasonalAllowed'];
+
+export async function updatePurpose(req, res) {
+  const purpose = await Purpose.findById(req.params.id);
+  if (!purpose) {
+    return res.status(404).json({ message: 'Maqsad topilmadi' });
+  }
+  for (const field of PURPOSE_FIELDS) {
+    if (req.body[field] !== undefined) purpose[field] = req.body[field];
+  }
+  await purpose.save();
+  await logAction({ req, action: 'update', entity: 'Purpose', entityId: purpose._id });
+  res.json(purpose);
+}
+
 export async function currentTariff(req, res) {
   const tariff = await Tariff.findOne({ validFrom: { $lte: new Date() } }).sort({ validFrom: -1 });
   if (!tariff) {

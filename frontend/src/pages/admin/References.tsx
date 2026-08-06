@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useCompanies, useCreateCompany } from '../../api/users';
-import { useDistricts, usePurposes, useTariff, useZones } from '../../api/references';
+import { useDistricts, usePurposes, useUpdatePurpose, useTariff, useZones } from '../../api/references';
 import { Card, CardHead, TableWrap, Btn, Select, Seg, SegButton } from '../../components/admin/ui';
 import { formatSom } from '../../lib/format';
+import { useAuthStore } from '../../store/authStore';
+import type { Purpose } from '../../types';
 
 type Tab = 'companies' | 'districts' | 'zones' | 'purposes' | 'tariff';
 
@@ -192,9 +194,15 @@ function ZonesPanel() {
 
 function PurposesPanel() {
   const { data: purposes, isLoading } = usePurposes();
+  const role = useAuthStore((s) => s.user?.role);
+  const canEdit = role === 'SUPER_ADMIN';
+
   return (
     <Card>
-      <CardHead title="Maqsadlar" subtitle={`Jami ${purposes?.length ?? 0} ta`} />
+      <CardHead
+        title="Maqsadlar"
+        subtitle={`Jami ${purposes?.length ?? 0} ta${canEdit ? ' — Kmaqsad koeffitsiyentini tahrirlash mumkin' : ''}`}
+      />
       {isLoading ? (
         <p style={{ padding: 22, color: 'var(--text-3)' }}>Yuklanmoqda...</p>
       ) : (
@@ -204,20 +212,63 @@ function PurposesPanel() {
               <th>Nomi</th>
               <th>Kmaqsad</th>
               <th>Mavsumiy ruxsat</th>
+              {canEdit && <th></th>}
             </tr>
           </thead>
           <tbody>
             {(purposes ?? []).map((p) => (
-              <tr key={p._id}>
-                <td>{p.name}</td>
-                <td>{p.coefficient}</td>
-                <td style={{ color: 'var(--text-2)' }}>{p.seasonalAllowed ? 'Ha' : "Yo'q"}</td>
-              </tr>
+              <PurposeRow key={p._id} purpose={p} editable={canEdit} />
             ))}
           </tbody>
         </TableWrap>
       )}
     </Card>
+  );
+}
+
+function PurposeRow({ purpose, editable }: { purpose: Purpose; editable: boolean }) {
+  const updatePurpose = useUpdatePurpose();
+  const [coefficient, setCoefficient] = useState(String(purpose.coefficient));
+  const dirty = coefficient !== String(purpose.coefficient);
+
+  async function save() {
+    const value = Number(coefficient);
+    if (!coefficient || Number.isNaN(value)) return;
+    await updatePurpose.mutateAsync({ id: purpose._id, coefficient: value });
+  }
+
+  if (!editable) {
+    return (
+      <tr>
+        <td>{purpose.name}</td>
+        <td>{purpose.coefficient}</td>
+        <td style={{ color: 'var(--text-2)' }}>{purpose.seasonalAllowed ? 'Ha' : "Yo'q"}</td>
+      </tr>
+    );
+  }
+
+  return (
+    <tr>
+      <td>{purpose.name}</td>
+      <td>
+        <input
+          type="number"
+          step="any"
+          value={coefficient}
+          onChange={(e) => setCoefficient(e.target.value)}
+          className="as-input"
+          style={{ width: 100 }}
+        />
+      </td>
+      <td style={{ color: 'var(--text-2)' }}>{purpose.seasonalAllowed ? 'Ha' : "Yo'q"}</td>
+      <td>
+        {dirty && (
+          <Btn variant="primary" onClick={save} disabled={updatePurpose.isPending} style={{ padding: '6px 12px' }}>
+            Saqlash
+          </Btn>
+        )}
+      </td>
+    </tr>
   );
 }
 
